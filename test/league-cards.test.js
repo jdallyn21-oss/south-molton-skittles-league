@@ -4,7 +4,7 @@ const assert = require('assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { acceptCard, createStore } = require('../lib/league-cards');
+const { acceptCard, createStore, pruneBellHotelCards } = require('../lib/league-cards');
 
 function player(name, boxes) {
   return { name, boxes, spare: [false, false, false, false, false, false], fine: [false, false, false, false, false, false] };
@@ -72,5 +72,11 @@ assert.strictEqual(second.awayTotal, 27);
 assert.deepStrictEqual(second.homePlayers[0].boxes, [8, 7, 6, 5, null, null]);
 assert.strictEqual(store.list().length, 1);
 assert.strictEqual(second.receivedAt, first.receivedAt);
+
+const bell = store.upsert(Object.assign({}, accepted.card, { id: '0-1-0', divIndex: 0, division: 1, week: 1, matchIndex: 0, homeNum: 5, awayNum: 3 }));
+assert.strictEqual(bell.homeNum, 5);
+assert.deepStrictEqual(pruneBellHotelCards(store), ['0-1-0']);
+assert.strictEqual(store.get('0-1-0'), null);
+assert.strictEqual(store.get('0-3-0').homeTotal, 26);
 
 console.log('league-cards tests passed');

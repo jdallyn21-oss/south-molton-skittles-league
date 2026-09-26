@@ -3,7 +3,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { acceptCard, createStore } = require('./lib/league-cards');
+const { acceptCard, createStore, pruneBellHotelCards } = require('./lib/league-cards');
 
 const PORT = Number(process.env.PORT) || 47331;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -98,6 +98,8 @@ const server = http.createServer((req, res) => {
 });
 
 if (require.main === module) {
+  const dropped = pruneBellHotelCards(store);
+  if (dropped.length) console.log('Dropped Bell Hotel fixture cards: ' + dropped.join(', '));
   server.listen(PORT, HOST, () => {
     console.log('South Molton Skittles League http://' + HOST + ':' + PORT);
   });

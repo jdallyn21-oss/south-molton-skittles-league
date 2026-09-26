@@ -1442,10 +1442,43 @@ function render(){
   else main.appendChild(buildAlleysView());
 }
 
+/* ---------- scores pushed by the scorer after each pair of rubs ---------- */
+function applySyncedCard(card){
+  if(!card || card.quick || (card.format && card.format !== "league")) return false;
+  const div = card.divIndex;
+  if(div == null || div < 0 || div > 2 || !state.results[div]) return false;
+  const key = "w" + card.week + "m" + card.matchIndex;
+  const next = {
+    homeNum: card.homeNum,
+    awayNum: card.awayNum,
+    homePlayers: (card.homePlayers || []).map(p => ({ name: p.name, pins: p.pins })),
+    awayPlayers: (card.awayPlayers || []).map(p => ({ name: p.name, pins: p.pins })),
+    homeTotal: card.homeTotal,
+    awayTotal: card.awayTotal,
+    savedAt: card.updatedAt || card.savedAt || card.receivedAt
+  };
+  const prev = state.results[div][key];
+  if(JSON.stringify(prev) === JSON.stringify(next)) return false;
+  state.results[div][key] = next;
+  return true;
+}
+async function loadSyncedCards(){
+  try{
+    const res = await fetch("/api/cards", { cache: "no-store" });
+    if(!res.ok) return;
+    const data = await res.json();
+    let changed = false;
+    (data.cards || []).forEach(card => { if(applySyncedCard(card)) changed = true; });
+    if(changed) render();
+  }catch(e){}
+}
+
 /* ---------- boot ---------- */
 (function boot(){
   loadInitialState();
   render();
+  loadSyncedCards();
+  document.addEventListener("visibilitychange", () => { if(!document.hidden) loadSyncedCards(); });
   // scroll current week into view on first load
   setTimeout(()=>{
     const el=document.querySelector(".is-now");

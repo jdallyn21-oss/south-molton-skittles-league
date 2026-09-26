@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>South Molton Skittles League</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --felt:#1F3B2C;
+    --felt-dark:#132821;
+    --chalk:#F4EFE2;
+    --parchment:#EFE8D6;
+    --stripe:#E5DCC3;
+    --oak:#6B4226;
+    --oak-light:#8B5E34;
+    --brass:#B08D4F;
+    --ink:#22201B;
+    --ink-soft:#5B564A;
+    --win:#3F6B4A;
+    --loss:#A6453A;
+    --draw:#B08D4F;
+    --line:rgba(34,32,27,0.16);
+    --card:#FBF8EF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--parchment);color:var(--ink);font-family:'Work Sans',sans-serif;line-height:1.45;}
+  h1,h2,h3{font-family:'Rye',serif;font-weight:400;color:var(--chalk);letter-spacing:0.5px;}
+  .hero{background:radial-gradient(120% 160% at 15% 0%, var(--felt) 0%, var(--felt-dark) 70%);padding:44px 20px 28px;text-align:left;}
+  .hero-inner{max-width:920px;margin:0 auto;}
+  .hero h1{font-size:clamp(28px,5vw,44px);margin:0 0 8px;}
+  .hero p{color:#D8D3C2;margin:0;max-width:60ch;font-size:15px;}
+  .hero .season{display:inline-block;margin-top:14px;color:var(--brass);font-weight:600;font-size:13px;border-top:1px solid rgba(176,141,79,0.4);padding-top:10px;}
+
+  nav.tabs{display:flex;gap:2px;max-width:920px;margin:0 auto;padding:0 20px;transform:translateY(1px);flex-wrap:wrap;}
+  nav.tabs button{background:var(--oak);color:var(--chalk);border:none;padding:12px 18px;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border-radius:6px 6px 0 0;opacity:0.72;transition:opacity .15s, background .15s;}
+  nav.tabs button.active{background:var(--card);color:var(--ink);opacity:1;}
+  nav.tabs button:hover{opacity:1;}
+
+  main{max-width:920px;margin:0 auto;padding:22px 20px 60px;}
+
+  .divswitch{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .divswitch button{background:var(--card);border:1px solid var(--line);color:var(--ink-soft);padding:8px 16px;border-radius:20px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Work Sans',sans-serif;}
+  .divswitch button.active{background:var(--felt);color:var(--chalk);border-color:var(--felt);}
+
+  .week-row{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--oak-light);border-radius:6px;margin-bottom:10px;overflow:hidden;}
+  .week-row.is-now{border-left-color:var(--brass);box-shadow:0 0 0 1px var(--brass);}
+  .week-row.is-event{border-left-color:var(--ink-soft);}
+  .week-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;gap:10px;flex-wrap:wrap;}
+  .week-date{font-weight:700;font-size:13px;color:var(--ink-soft);min-width:96px;}
+  .now-chip{background:var(--brass);color:var(--chalk);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px;}
+  .event-label{font-weight:600;font-size:14.5px;padding:2px 8px;border-radius:4px;color:#fff;}
+  .bye-note{font-size:12.5px;color:var(--ink-soft);font-style:italic;}
+
+  .matches{padding:0 14px 12px;}
+  .match{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap;}
+  .match:first-child{border-top:none;}
+  .pin{width:22px;height:22px;border-radius:50%;background:var(--felt);color:var(--chalk);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+  .teamname{font-weight:600;font-size:14.5px;flex:1 1 auto;min-width:110px;}
+  .score-display{font-family:'Work Sans',sans-serif;font-weight:700;font-size:15px;background:var(--parchment);padding:4px 10px;border-radius:4px;min-width:64px;text-align:center;}
+  .vs{color:var(--ink-soft);font-size:12px;font-weight:600;}
+  .linklike{background:none;border:none;color:var(--felt);font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline;padding:4px 2px;}
+  .linklike.muted{color:var(--ink-soft);}
+
+  .score-form{background:var(--parchment);border-top:1px dashed var(--line);padding:14px;margin-top:6px;}
+  .score-cols{display:flex;gap:18px;flex-wrap:wrap;}
+  .score-col{flex:1 1 220px;min-width:220px;}
+  .score-col h4{margin:0 0 8px;font-family:'Work Sans',sans-serif;font-size:14px;font-weight:700;color:var(--ink);}
+  .player-row{display:flex;gap:6px;margin-bottom:6px;}
+  .player-row input[type=text]{flex:1;padding:7px 8px;border:1px solid var(--line);border-radius:4px;font-size:13.5px;font-family:'Work Sans',sans-serif;}
+  .player-row input[type=number]{width:70px;padding:7px 8px;border:1px solid var(--line);border-radius:4px;font-size:13.5px;font-family:'Work Sans',sans-serif;}
+  .player-row button{background:none;border:none;color:var(--loss);font-size:16px;cursor:pointer;padding:0 4px;}
+  .addrow{background:none;border:1px dashed var(--ink-soft);color:var(--ink-soft);border-radius:4px;padding:5px 10px;font-size:12.5px;cursor:pointer;font-family:'Work Sans',sans-serif;}
+  .col-total{margin-top:6px;font-weight:700;font-size:13.5px;color:var(--ink);}
+  .form-actions{display:flex;gap:10px;margin-top:14px;align-items:center;}
+  .btn-primary{background:var(--felt);color:var(--chalk);border:none;padding:9px 18px;border-radius:5px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:'Work Sans',sans-serif;}
+  .btn-secondary{background:none;border:1px solid var(--ink-soft);color:var(--ink-soft);padding:9px 16px;border-radius:5px;font-weight:600;font-size:13.5px;cursor:pointer;font-family:'Work Sans',sans-serif;}
+
+  table.league-table{width:100%;border-collapse:collapse;background:var(--card);border-radius:6px;overflow:hidden;font-size:13.5px;}
+  table.league-table th{background:var(--felt);color:var(--chalk);text-align:left;padding:9px 8px;font-weight:600;font-size:12.5px;}
+  table.league-table td{padding:8px;border-top:1px solid var(--line);}
+  table.league-table tr:nth-child(even) td{background:var(--stripe);}
+  table.league-table td.num{text-align:center;}
+  table.league-table td.name{font-weight:600;}
+  table.league-table td.pts{font-weight:700;color:var(--felt);}
+  table.league-table th.sortable{cursor:pointer;user-select:none;}
+  table.league-table th.sortable:hover{color:var(--brass);}
+  .teamlink{cursor:pointer;color:var(--felt);text-decoration:underline;text-decoration-color:rgba(31,59,44,0.35);text-underline-offset:2px;}
+  .teamlink:hover{color:var(--brass);}
+  tr.playerrow{cursor:pointer;}
+  tr.playerrow:hover td{background:var(--stripe);}
+  .search-input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:'Work Sans',sans-serif;margin-bottom:14px;background:var(--card);color:var(--ink);}
+  .search-input:focus{outline:2px solid var(--brass);outline-offset:1px;}
+  .division-heading{font-family:'Work Sans',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);margin:20px 0 8px;}
+  .division-heading:first-child{margin-top:0;}
+  .match-detail{background:var(--parchment);border-top:1px dashed var(--line);padding:10px 14px;}
+  .match-detail-cols{display:flex;gap:24px;flex-wrap:wrap;}
+  .match-detail-col{flex:1 1 200px;min-width:180px;}
+  .match-detail-col h4{margin:0 0 6px;font-family:'Work Sans',sans-serif;font-size:13px;font-weight:700;color:var(--ink);}
+  .match-detail-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:2px 0;border-bottom:1px solid rgba(34,32,27,0.08);}
+  .stat-row{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px;}
+  .honours-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13.5px;padding:5px 0;border-bottom:1px solid rgba(34,32,27,0.08);}
+  .honours-row .name{font-weight:600;flex:1 1 auto;}
+  .stat-block{text-align:center;min-width:64px;}
+  .stat-block strong{display:block;font-size:22px;color:var(--felt);font-family:'Work Sans',sans-serif;}
+  .stat-block span{font-size:11.5px;color:var(--ink-soft);}
+
+  .settings-block{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px;margin-bottom:16px;}
+  .settings-block h3{color:var(--ink);font-family:'Work Sans',sans-serif;font-size:15px;font-weight:700;margin:0 0 12px;}
+  .note{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--felt);color:var(--chalk);padding:10px 20px;border-radius:22px;font-size:13.5px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,0.25);opacity:0;pointer-events:none;transition:opacity .25s;z-index:50;}
+  .toast.show{opacity:1;}
+  .loading{padding:60px 20px;text-align:center;color:var(--ink-soft);font-size:14px;}
+  .site-footer{max-width:920px;margin:0 auto;padding:0 20px 40px;font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.5;}
+
+  @media (max-width:520px){
+    .teamname{font-size:13.5px;}
+    .score-display{font-size:14px;}
+    nav.tabs button{padding:10px 12px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <h1>South Molton Skittles League</h1>
+    <p>Fixtures, results and league tables for Divisions 1, 2 and 3.</p>
+    <span class="season">2026/27 season</span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<main id="app"><div class="loading">Setting up the alley…</div></main>
+<footer class="site-footer">This site is view-only, kept up to date by the league. Cup competitions (Sid Squire, Front Pin, Western Counties, Concrete Cup, Air Ambulance, Pidler, County events, Millennium Cup) are shown on the Fixtures tab for reference but aren't scored here.</footer>
+<div class="toast" id="toast"></div>
+<script type="application/json" id="state-data">{"teams": [["Colts", "Thirsty Farmers", "Heasley Mill B", "Young Guns", "Bell Hotel", "Sundowners", "Shafters", "NMSC", "Thunder Bolts"], ["Blue Boys", "Flowers Floppers", "Masons", "Exiles", "Twitchen", "North Molton Wanderers", "Cockers", "Molland", "Trappers"], ["Tinkerbells", "Bray B", "Rackenford Rebels", "Mucking Fuddlers", "Jubilee Spoofers", "Rose Ash Ramblers", "Bell B", "Simonsbath Stars", "Dicks Devils"]], "points": {"win": 2, "draw": 1, "loss": 0}, "results": [{"w1m1": {"homeNum": 6, "awayNum": 2, "homeTotal": 428, "awayTotal": 459, "savedAt": "2026-09-07", "homePlayers": [{"name": "D. Holland", "pins": 47}, {"name": "J. Hammett", "pins": 69}, {"name": "L. Arscott", "pins": 56}, {"name": "S. Murch", "pins": 51}, {"name": "L. Oldfield", "pins": 49}, {"name": "P. Holland", "pins": 53}, {"name": "R. Gay", "pins": 56}, {"name": "I. Gay", "pins": 49}], "awayPlayers": [{"name": "A. Westcott", "pins": 45}, {"name": "M. Latham", "pins": 66}, {"name": "P. Jones", "pins": 68}, {"name": "J. Edwards", "pins": 46}, {"name": "R. Sanders", "pins": 50}, {"name": "B. Darley", "pins": 61}, {"name": "A. Stentiford", "pins": 65}, {"name": "T. Down", "pins": 61}]}, "w1m2": {"homeNum": 7, "awayNum": 1, "homeTotal": 479, "awayTotal": 414, "savedAt": "2026-09-07", "homePlayers": [{"name": "R. Easterbrook", "pins": 54}, {"name": "M. Alford", "pins": 53}, {"name": "A. Jones", "pins": 52}, {"name": "C. Wills", "pins": 45}, {"name": "P. Grant", "pins": 47}, {"name": "P. Gear", "pins": 80}, {"name": "M. Tucker", "pins": 68}, {"name": "G. Clark", "pins": 62}], "awayPlayers": [{"name": "Alex Jones", "pins": 47}, {"name": "M. Bray", "pins": 44}, {"name": "G. Gosling", "pins": 45}, {"name": "A. Bray", "pins": 50}, {"name": "A. Jones", "pins": 53}, {"name": "K. Gollop", "pins": 51}, {"name": "M. Roberts", "pins": 57}, {"name": "S. Marshall", "pins": 64}]}, "w1m3": {"homeNum": 8, "awayNum": 9, "homeTotal": 473, "awayTotal": 431, "savedAt": "2026-09-07", "homePlayers": [{"name": "S. Gist", "pins": 58}, {"name": "C. Roach", "pins": 50}, {"name": "S. Phillips", "pins": 50}, {"name": "S. Kingdon", "pins": 57}, {"name": "A. Crispin", "pins": 66}, {"name": "W. Palmer", "pins": 58}, {"name": "G. Noble", "pins": 62}, {"name": "T. Lochhead", "pins": 72}], "awayPlayers": [{"name": "M. Mogford", "pins": 55}, {"name": "M. Swerling", "pins": 48}, {"name": "G. Ley", "pins": 54}, {"name": "D. Ley", "pins": 59}, {"name": "D. Luxton", "pins": 57}, {"name": "K. Godard", "pins": 49}, {"name": "P. Stentiford", "pins": 46}, {"name": "S. Stentiford", "pins": 63}]}, "w2m1": {"homeNum": 2, "awayNum": 7, "homeTotal": 487, "awayTotal": 522, "savedAt": "2026-09-14", "homePlayers": [{"name": "A. Westcott", "pins": 48}, {"name": "M. Latham", "pins": 66}, {"name": "P. Jones", "pins": 52}, {"name": "J. Edwards", "pins": 40}, {"name": "R. Sanders", "pins": 60}, {"name": "B. Darley", "pins": 74}, {"name": "A. Stentiford", "pins": 77, "twentySeven": true}, {"name": "T. Down", "pins": 70}], "awayPlayers": [{"name": "R. Easterbrook", "pins": 73}, {"name": "M. Alford", "pins": 67}, {"name": "D. Pullman", "pins": 58}, {"name": "C. Wing", "pins": 69}, {"name": "P. Crane", "pins": 57}, {"name": "P. Gear", "pins": 62}, {"name": "M. Tucker", "pins": 77}, {"name": "G. Clark", "pins": 63}]}, "w2m2": {"homeNum": 3, "awayNum": 6, "homeTotal": 499, "awayTotal": 428, "savedAt": "2026-09-14", "homePlayers": [{"name": "S. Stentiford", "pins": 64}, {"name": "G. Loosemore", "pins": 71}, {"name": "R. Emmett", "pins": 63}, {"name": "H. Tapp", "pins": 47}, {"name": "H. Hayes", "pins": 63}, {"name": "T. Courtney", "pins": 56}, {"name": "A.W. Tapp", "pins": 55}, {"name": "P. Tapp", "pins": 80}], "awayPlayers": [{"name": "D. Holland", "pins": 46}, {"name": "J. Hammett", "pins": 57}, {"name": "L. Arscott", "pins": 55}, {"name": "S. Holland", "pins": 45}, {"name": "J. Mcreadie", "pins": 45}, {"name": "L. Oldfield", "pins": 43}, {"name": "R. Gay", "pins": 79}, {"name": "I. Gay", "pins": 58}]}}, {"w1m0": {"homeNum": 5, "awayNum": 3, "homeTotal": 428, "awayTotal": 388, "savedAt": "2026-09-07", "homePlayers": [{"name": "W. Sing", "pins": 56}, {"name": "J. Taylor", "pins": 42}, {"name": "W. Brown", "pins": 52}, {"name": "S. Trewin", "pins": 72}, {"name": "S. Becklake", "pins": 51}, {"name": "A. Tarr", "pins": 50}, {"name": "O. Brown", "pins": 49}, {"name": "M. Brown", "pins": 54}], "awayPlayers": [{"name": "S. Stanbury", "pins": 46}, {"name": "R. Woollacott", "pins": 55}, {"name": "R. Reed", "pins": 62}, {"name": "M. Nichols", "pins": 49}, {"name": "R. Stanbury", "pins": 41}, {"name": "P. Snell", "pins": 43}, {"name": "S. Selley", "pins": 41}, {"name": "D. Snell", "pins": 51}]}, "w1m1": {"homeNum": 6, "awayNum": 2, "homeTotal": 426, "awayTotal": 463, "savedAt": "2026-09-07", "homePlayers": [{"name": "D. Leworthy", "pins": 43}, {"name": "S. Headon", "pins": 49}, {"name": "M. Thurlow", "pins": 57}, {"name": "J. Kingdon", "pins": 52}, {"name": "S. Sexton", "pins": 56}, {"name": "R. Kyngdon", "pins": 61}, {"name": "N. Phillips", "pins": 44}, {"name": "G. De Russett", "pins": 64}], "awayPlayers": [{"name": "S. Shaddick", "pins": 63}, {"name": "D. Watts", "pins": 57}, {"name": "M. Thomas", "pins": 48}, {"name": "J. Robinson", "pins": 63}, {"name": "N. Hutter", "pins": 49}, {"name": "N. Widlake", "pins": 61}, {"name": "J. Cook", "pins": 57}, {"name": "A. Facey", "pins": 68}]}, "w1m2": {"homeNum": 7, "awayNum": 1, "homeTotal": 413, "awayTotal": 414, "savedAt": "2026-09-07", "homePlayers": [{"name": "L. Kittow", "pins": 38}, {"name": "N. Baillie", "pins": 49}, {"name": "J. Weeks", "pins": 57}, {"name": "M. Williams", "pins": 45}, {"name": "J. Hayes", "pins": 56}, {"name": "N. Lancells", "pins": 50}, {"name": "T. Barry", "pins": 65}, {"name": "W. Lock", "pins": 53}], "awayPlayers": [{"name": "M. Saunders", "pins": 55}, {"name": "S. Wyatt", "pins": 53}, {"name": "B. Phillips", "pins": 54}, {"name": "G. Phillips", "pins": 52}, {"name": "P. Lake", "pins": 45}, {"name": "E. Kingdom", "pins": 58}, {"name": "P. Saunders", "pins": 51}, {"name": "F. Phillips", "pins": 46}]}, "w1m3": {"homeNum": 8, "awayNum": 9, "homeTotal": 457, "awayTotal": 381, "savedAt": "2026-09-07", "homePlayers": [{"name": "D. Meschall", "pins": 62}, {"name": "S. Snell", "pins": 66}, {"name": "L. Hutchings", "pins": 54}, {"name": "M. Latchford", "pins": 63}, {"name": "G. Chanter", "pins": 58}, {"name": "J. Stuckey", "pins": 48}, {"name": "S. White", "pins": 60}, {"name": "W. Barrow", "pins": 46}], "awayPlayers": [{"name": "T. Coars", "pins": 46}, {"name": "I. Drummond", "pins": 52}, {"name": "P. Crawford", "pins": 47}, {"name": "S. Mayzoll", "pins": 43}, {"name": "R. Millman", "pins": 48}, {"name": "E. Maypall", "pins": 52}, {"name": "T. Itaybate", "pins": 35}, {"name": "R. Gibson", "pins": 58}]}, "w2m0": {"homeNum": 1, "awayNum": 8, "homeTotal": 419, "awayTotal": 408, "savedAt": "2026-09-14", "homePlayers": [{"name": "M. Saunders", "pins": 48}, {"name": "S. Wyatt", "pins": 41}, {"name": "B. Phillips", "pins": 63}, {"name": "P. Lake", "pins": 52}, {"name": "M. Slade", "pins": 47}, {"name": "E. Kingdom", "pins": 59}, {"name": "P. Saunders", "pins": 55}, {"name": "F. Phillips", "pins": 56}], "awayPlayers": [{"name": "R. Dart", "pins": 51}, {"name": "S. Snell", "pins": 50}, {"name": "L. Hutchings", "pins": 55}, {"name": "J. Stuckey", "pins": 52}, {"name": "M. Latchford", "pins": 48}, {"name": "S. White", "pins": 47}, {"name": "D. Meschall", "pins": 51}, {"name": "W. Barrow", "pins": 54}]}, "w2m1": {"homeNum": 2, "awayNum": 7, "homeTotal": 465, "awayTotal": 471, "savedAt": "2026-09-14", "homePlayers": [{"name": "S. Shaddick", "pins": 53}, {"name": "D. Watts", "pins": 69}, {"name": "J. Moore", "pins": 54}, {"name": "J. Robinson", "pins": 62}, {"name": "N. Widlake", "pins": 56}, {"name": "B. Mitchell", "pins": 67}, {"name": "J. Cook", "pins": 47}, {"name": "A. Facey", "pins": 57}], "awayPlayers": [{"name": "J. Weeks", "pins": 71}, {"name": "K. Chaple", "pins": 52}, {"name": "N. Bailey", "pins": 63}, {"name": "M. Williams", "pins": 52}, {"name": "N. Lancells", "pins": 45}, {"name": "J. Hayes", "pins": 70}, {"name": "T. Barry", "pins": 71}, {"name": "W. Locke", "pins": 47}]}, "w2m2": {"homeNum": 3, "awayNum": 6, "homeTotal": 431, "awayTotal": 422, "savedAt": "2026-09-14", "homePlayers": [{"name": "S. Stanbury", "pins": 39}, {"name": "R. Woolacott", "pins": 45}, {"name": "M. Selley", "pins": 47}, {"name": "M. Gardner", "pins": 74}, {"name": "M. Nichols", "pins": 61}, {"name": "P. Snell", "pins": 55}, {"name": "S. Selley", "pins": 47}, {"name": "D. Snell", "pins": 63}], "awayPlayers": [{"name": "D. Leworthy", "pins": 63}, {"name": "S. Headon", "pins": 50}, {"name": "M. Huxtable", "pins": 60}, {"name": "J. Kingdon", "pins": 53}, {"name": "S. Sexon", "pins": 46}, {"name": "R. Kingdon", "pins": 41}, {"name": "N. Phillips", "pins": 49}, {"name": "G. De Russett", "pins": 64}]}, "w2m3": {"homeNum": 4, "awayNum": 5, "homeTotal": 447, "awayTotal": 428, "savedAt": "2026-09-14", "homePlayers": [{"name": "P. Wood", "pins": 52}, {"name": "C. Gunter", "pins": 57}, {"name": "W. Kingdom", "pins": 43}, {"name": "A. Baggott", "pins": 61}, {"name": "C. Rowlins", "pins": 66}, {"name": "D. Oliver", "pins": 53}, {"name": "R. Wilcox", "pins": 63}, {"name": "J. Blackmore", "pins": 52}], "awayPlayers": [{"name": "C. Boyd", "pins": 47}, {"name": "J. Taylor", "pins": 55}, {"name": "W. Brown", "pins": 47}, {"name": "S. Trewin", "pins": 46}, {"name": "S. Becklake", "pins": 62}, {"name": "A. Tarr", "pins": 63}, {"name": "O. Brown", "pins": 58}, {"name": "M. Brown", "pins": 50}]}}, {"w1m0": {"homeNum": 5, "awayNum": 3, "homeTotal": 400, "awayTotal": 397, "savedAt": "2026-09-07", "homePlayers": [{"name": "S. Weaver", "pins": 57}, {"name": "Unclear player (7 Sep, Jubilee Spoofers)", "pins": 45}, {"name": "D. Nicholls", "pins": 42}, {"name": "S. Kingdom", "pins": 69}, {"name": "J. Weaver", "pins": 38}, {"name": "O. Cronk", "pins": 46}, {"name": "M. Rennerson", "pins": 48}, {"name": "T. Weaver", "pins": 50}], "awayPlayers": [{"name": "M. Lucas", "pins": 50}, {"name": "A. Freeman", "pins": 43}, {"name": "C. Wamsley", "pins": 40}, {"name": "I. Dobson", "pins": 51}, {"name": "A. Petherson", "pins": 38}, {"name": "R. Cole", "pins": 46}, {"name": "Unclear player (7 Sep, Rackenford Rebels)", "pins": 49}, {"name": "D. French", "pins": 58}]}, "w1m1": {"homeNum": 6, "awayNum": 2, "homeTotal": 367, "awayTotal": 407, "savedAt": "2026-09-07", "homePlayers": [{"name": "C. Holt", "pins": 49}, {"name": "C. Taylor", "pins": 63}, {"name": "D. Lee", "pins": 45}, {"name": "N. Cook", "pins": 32}, {"name": "P. Green", "pins": 45}, {"name": "M. Boundy", "pins": 46}, {"name": "A. Ayre", "pins": 45}, {"name": "C. Ayre", "pins": 42}], "awayPlayers": [{"name": "D. Gosling", "pins": 39}, {"name": "A. Tucker", "pins": 65}, {"name": "B. Browning", "pins": 50}, {"name": "M. Pudgham", "pins": 41}, {"name": "R. Sanderson", "pins": 58}, {"name": "S. Matthews", "pins": 51}, {"name": "F. Watts", "pins": 53}, {"name": "M. Peace", "pins": 50}]}, "w1m2": {"homeNum": 7, "awayNum": 1, "homeTotal": 477, "awayTotal": 463, "savedAt": "2026-09-07", "homePlayers": [{"name": "D. Huxtable", "pins": 71}, {"name": "T. Dellow", "pins": 58}, {"name": "J. Holland", "pins": 59}, {"name": "H. Scott", "pins": 45}, {"name": "H. Edgell", "pins": 65}, {"name": "T. Knight", "pins": 55}, {"name": "M. Wheaton", "pins": 69}, {"name": "B. Murch", "pins": 55}], "awayPlayers": [{"name": "J. Dallyn", "pins": 69}, {"name": "P. Seviour", "pins": 56}, {"name": "R. Tucker", "pins": 56}, {"name": "T. Watts", "pins": 59}, {"name": "S. Selley", "pins": 45}, {"name": "M. Dallyn", "pins": 48}, {"name": "C. Tucker", "pins": 68}, {"name": "K. Jones", "pins": 62}]}, "w1m3": {"homeNum": 8, "awayNum": 9, "homeTotal": 359, "awayTotal": 353, "savedAt": "2026-09-07", "homePlayers": [{"name": "T. Wright", "pins": 0}, {"name": "A. Bawden", "pins": 41}, {"name": "R. Summersgill", "pins": 36}, {"name": "J. Milnthorpe", "pins": 52}, {"name": "M. Boundy", "pins": 82}, {"name": "R. Whitehead", "pins": 39}, {"name": "T. Killington", "pins": 56}, {"name": "M. Jackson", "pins": 53}], "awayPlayers": [{"name": "P. Carter", "pins": 35}, {"name": "R. Ward", "pins": 47}, {"name": "K. McNeill", "pins": 37}, {"name": "S. Symons", "pins": 53}, {"name": "S. Lee", "pins": 53}, {"name": "P. Taplin", "pins": 46}, {"name": "W. Glover", "pins": 44}, {"name": "N. Brend", "pins": 38}]}, "w2m0": {"homeNum": 1, "awayNum": 8, "homeTotal": 480, "awayTotal": 494, "savedAt": "2026-09-14", "homePlayers": [{"name": "L. Warne", "pins": 49}, {"name": "T. Jones", "pins": 49}, {"name": "J. Dallyn", "pins": 74}, {"name": "P. Seviour", "pins": 61}, {"name": "R. Tucker", "pins": 46}, {"name": "C. Tucker", "pins": 47}, {"name": "K. Jones", "pins": 83}, {"name": "M. Verney", "pins": 71}], "awayPlayers": [{"name": "T. Wright", "pins": 52}, {"name": "A. Bowden", "pins": 50}, {"name": "T. Killington", "pins": 64}, {"name": "J. Milnthrope", "pins": 65}, {"name": "R. Whitehead", "pins": 47}, {"name": "M. Boundy", "pins": 73}, {"name": "P. Charman", "pins": 53}, {"name": "M. Jackson", "pins": 90}]}, "w2m1": {"homeNum": 2, "awayNum": 7, "homeTotal": 424, "awayTotal": 425, "savedAt": "2026-09-14", "homePlayers": [{"name": "M. Gardner", "pins": 38}, {"name": "A. Tucker", "pins": 62}, {"name": "P. Carlton", "pins": 64}, {"name": "M. Pudgham", "pins": 69}, {"name": "R. Sanderson", "pins": 58}, {"name": "S. Matthews", "pins": 41}, {"name": "F. Watts", "pins": 41}, {"name": "M. Peace", "pins": 51}], "awayPlayers": [{"name": "D. Huxtable", "pins": 48}, {"name": "S. Cook", "pins": 41}, {"name": "J. Holland", "pins": 55}, {"name": "H. Edgell", "pins": 57}, {"name": "N. Knight", "pins": 46}, {"name": "W. Ayre", "pins": 52}, {"name": "M. Wheaton", "pins": 78}, {"name": "B. Murch", "pins": 48}]}, "w2m2": {"homeNum": 3, "awayNum": 6, "homeTotal": 419, "awayTotal": 372, "savedAt": "2026-09-14", "homePlayers": [{"name": "A. Green", "pins": 46}, {"name": "M. Lucas", "pins": 53}, {"name": "I. Lucas", "pins": 48}, {"name": "G. Wansrall", "pins": 53}, {"name": "S. Warne", "pins": 64}, {"name": "A. Robinson", "pins": 45}, {"name": "R. Cole", "pins": 67}, {"name": "D. French", "pins": 44}], "awayPlayers": [{"name": "C. Taylor", "pins": 60}, {"name": "M. Bowen", "pins": 42}, {"name": "R. Taylor", "pins": 30}, {"name": "N. Cook", "pins": 51}, {"name": "T. Cree", "pins": 43}, {"name": "C. Ayre", "pins": 53}, {"name": "A. Ayre", "pins": 53}, {"name": "P. Pritchard", "pins": 49}]}, "w2m3": {"homeNum": 4, "awayNum": 5, "homeTotal": 426, "awayTotal": 384, "savedAt": "2026-09-14", "homePlayers": [{"name": "T. Davey", "pins": 74}, {"name": "R. Farrent", "pins": 52}, {"name": "T. Elston", "pins": 38}, {"name": "M. Elston", "pins": 55}, {"name": "T. Holland", "pins": 50}, {"name": "T. Hoskins", "pins": 57}, {"name": "T. Thorne", "pins": 47}, {"name": "D. Howells", "pins": 53}], "awayPlayers": [{"name": "S. Weaver", "pins": 49}, {"name": "S. Green", "pins": 62}, {"name": "S. Kingdon", "pins": 52}, {"name": "S. Weaver", "pins": 37}, {"name": "J. Weaver", "pins": 47}, {"name": "T. Weaver", "pins": 39}, {"name": "M. Rennerson", "pins": 44}, {"name": "T. Weaver", "pins": 54}]}}], "withdrawn": [[false, false, false, false, true, false, false, false, false], [false, false, false, false, false, false, false, false, false], [false, false, false, false, false, false, false, false, false]]}</script>
+
+<script>
+/* ---------- static season data ---------- */
+const SEASON_START_YEAR = 2026;
+
+const DEFAULT_TEAMS = [
+  ["Colts","Thirsty Farmers","Heasley Mill B","Young Guns","Bell Hotel","Sundowners","Shafters","NMSC","Thunder Bolts"],
+  ["Blue Boys","Flowers Floppers","Masons","Exiles","Twitchen","North Molton Wanderers","Cockers","Molland","Trappers"],
+  ["Tinkerbells","Bray B","Rackenford Rebels","Mucking Fuddlers","Jubilee Spoofers","Rose Ash Ramblers","Bell B","Simonsbath Stars","Dicks Devils"]
+];
+const DIVISION_LABELS = ["Division 1","Division 2","Division 3"];
+const DEFAULT_POINTS = { win:2, draw:1, loss:0 };
+
+/* ---------- team directory (captains & venues, from the league's own contact sheet) ----------
+   Indexed 0-8 for team numbers 1-9, matching DEFAULT_TEAMS order in each division.
+   Personal mobile numbers are deliberately left out — only venue landlines are shown. */
+const TEAM_INFO = [
+  [ // Division 1
+    { captains:["A. Jones"], venue:"Wild Wood Bar", venuePhone:null },
+    { captains:["A. Westcott"], venue:"Poltimore Inn, North Molton", venuePhone:"01598 740338", alley:"Alley B" },
+    { captains:["S. Stentiford"], venue:"Poltimore Inn, North Molton", venuePhone:"01598 740338", alley:"Alley A" },
+    { captains:["E. Phillips"], venue:"North Molton Sports Club", venuePhone:null },
+    { captains:["M. Jones"], venue:"Bell Inn, Chittlehampton", venuePhone:"01769 540368" },
+    { captains:["D. Holland"], venue:"Con Club, South Molton", venuePhone:"01769 572358" },
+    { captains:["G. Clark"], venue:"Poltimore Inn, North Molton", venuePhone:"01598 740338", alley:"Alley A" },
+    { captains:["T. Lochead"], venue:"North Molton Sports Club", venuePhone:null },
+    { captains:["Sophie Stentiford"], venue:"Con Club, South Molton", venuePhone:"01769 572358" }
+  ],
+  [ // Division 2
+    { captains:["F. Phillips"], venue:"Coaching Inn, South Molton", venuePhone:"01769 572526" },
+    { captains:["A. Facey"], venue:"Con Club, South Molton", venuePhone:"01769 572358" },
+    { captains:["J. Selley"], venue:"Rackenford Club", venuePhone:"01884 881363" },
+    { captains:["R. Wilcox"], venue:"Town Arms, South Molton", venuePhone:"01769 572531" },
+    { captains:["M. Brown"], venue:"Coaching Inn, South Molton", venuePhone:"01769 572526" },
+    { captains:["D. Leworthy"], venue:"Poltimore Inn, North Molton", venuePhone:"01598 740338", alley:"Alley B" },
+    { captains:["S. Hyde"], venue:"Rackenford Club", venuePhone:"01884 881363" },
+    { captains:["D. Meschall"], venue:"Molland Village Hall", venuePhone:null },
+    { captains:["C. Dart"], venue:"Molland Village Hall", venuePhone:null }
+  ],
+  [ // Division 3
+    { captains:["L. Warne"], venue:"Bell Inn, Chittlehampton", venuePhone:"01769 540368" },
+    { captains:["A. Bawden","A. Tucker"], venue:"Village Hall, Brayford", venuePhone:null },
+    { captains:["P. Shadick"], venue:"Rackenford Club", venuePhone:"01884 881363" },
+    { captains:["W. Howells"], venue:"Ash Moor Nursery", venuePhone:null },
+    { captains:["J. Weaver"], venue:"Wild Wood Bar", venuePhone:null },
+    { captains:["P. Pritchard"], venue:"Rose Ash Village Hall", venuePhone:null },
+    { captains:["M. Wheaton"], venue:"Bell Inn, Chittlehampton", venuePhone:"01769 540368" },
+    { captains:["M. Jackson"], venue:"North Molton Sports Hall", venuePhone:null, alley:"Upstairs" },
+    { captains:["S. Lee"], venue:"Town Arms, South Molton", venuePhone:"01769 572531" }
+  ]
+];
+
+/* ---------- last season's final standings (2025/26), from the league's own summary sheet.
+   Indexed 0-8 for THIS year's team numbers 1-9 in each division — teams move between
+   divisions season to season, so this maps by team identity, not by table position. */
+const LAST_SEASON = [
+  [ // Division 1 teams, where they finished last year
+    { division:"Division 1", position:6,  played:18, won:7,  drawn:0, lost:9,  points:18 }, // Colts
+    { division:"Division 1", position:4,  played:18, won:8,  drawn:0, lost:7,  points:22 }, // Thirsty Farmers
+    { division:"Division 1", position:1,  played:18, won:13, drawn:0, lost:3,  points:30 }, // Heasley Mill B
+    { division:"Division 2", position:2,  played:18, won:12, drawn:0, lost:6,  points:24 }, // Young Guns
+    { division:"Division 1", position:5,  played:18, won:8,  drawn:0, lost:8,  points:20 }, // Bell Hotel
+    { division:"Division 1", position:7,  played:18, won:7,  drawn:0, lost:9,  points:18 }, // Sundowners
+    { division:"Division 1", position:3,  played:18, won:10, drawn:0, lost:6,  points:24 }, // Shafters
+    { division:"Division 1", position:2,  played:18, won:11, drawn:0, lost:5,  points:26 }, // NMSC
+    { division:"Division 2", position:1,  played:18, won:13, drawn:0, lost:5,  points:26 }  // Thunder Bolts
+  ],
+  [ // Division 2 teams
+    { division:"Division 2", position:3,  played:18, won:11, drawn:0, lost:7,  points:22 }, // Blue Boys
+    { division:"Division 3", position:2,  played:18, won:14, drawn:0, lost:4,  points:28 }, // Flowers Floppers
+    { division:"Division 2", position:6,  played:18, won:8,  drawn:0, lost:10, points:16 }, // Masons
+    { division:"Division 2", position:4,  played:18, won:8,  drawn:1, lost:9,  points:17 }, // Exiles
+    { division:"Division 1", position:8,  played:18, won:4,  drawn:0, lost:12, points:12 }, // Twitchen
+    { division:"Division 1", position:9,  played:18, won:3,  drawn:0, lost:13, points:10 }, // North Molton Wanderers
+    { division:"Division 2", position:5,  played:18, won:8,  drawn:0, lost:10, points:16 }, // Cockers
+    { division:"Division 3", position:1,  played:18, won:14, drawn:0, lost:4,  points:28 }, // Molland
+    { division:"Division 2", position:7,  played:18, won:8,  drawn:0, lost:10, points:16 }  // Trappers
+  ],
+  [ // Division 3 teams
+    { division:"Division 2", position:9,  played:18, won:7,  drawn:0, lost:11, points:14 }, // Tinkerbells
+    { division:"Division 3", position:4,  played:18, won:12, drawn:0, lost:6,  points:24 }, // Bray B
+    { division:"Division 3", position:9,  played:18, won:4,  drawn:0, lost:14, points:8  }, // Rackenford Rebels
+    { division:"Division 3", position:5,  played:18, won:10, drawn:0, lost:8,  points:20 }, // Mucking Fuddlers
+    { division:"Division 2", position:8,  played:18, won:7,  drawn:1, lost:10, points:15 }, // Jubilee Spoofers
+    { division:"Division 3", position:7,  played:18, won:7,  drawn:0, lost:11, points:14 }, // Rose Ash Ramblers
+    { division:"Division 3", position:3,  played:18, won:13, drawn:0, lost:5,  points:26 }, // Bell B
+    { division:"Division 2", position:10, played:18, won:7,  drawn:0, lost:11, points:14 }, // Simonsbath Stars
+    { division:"Division 3", position:6,  played:18, won:10, drawn:0, lost:8,  points:20 }  // Dicks Devils
+  ]
+];
+
+/* ---------- results transcribed from submitted scoresheets (weeks 1-2) ---------- */
+function P(name,pins){ return {name:name,pins:pins}; }
+const SEED_RESULTS = [
+  { // Division 1
+    "w1m1": { homeNum:6, awayNum:2, homeTotal:428, awayTotal:459, savedAt:"2026-09-07",
+      homePlayers:[P("D. Holland",47),P("J. Hammett",69),P("L. Arscott",56),P("S. Murch",51),P("L. Oldfield",49),P("P. Holland",53),P("R. Gay",56),P("I. Gay",49)],
+      awayPlayers:[P("A. Westcott",45),P("M. Latham",66),P("P. Jones",68),P("J. Edwards",46),P("R. Sanders",50),P("B. Darley",61),P("A. Stentiford",65),P("T. Down",61)] },
+    "w1m2": { homeNum:7, awayNum:1, homeTotal:479, awayTotal:414, savedAt:"2026-09-07",
+      homePlayers:[P("R. Easterbrook",54),P("M. Alford",53),P("A. Jones",52),P("C. Wills",45),P("P. Grant",47),P("P. Gear",80),P("M. Tucker",68),P("G. Clark",62)],
+      awayPlayers:[P("Alex Jones",47),P("M. Bray",44),P("G. Gosling",45),P("A. Bray",50),P("A. Jones",53),P("K. Gollop",51),P("M. Roberts",57),P("S. Marshall",64)] },
+    "w1m3": { homeNum:8, awayNum:9, homeTotal:473, awayTotal:431, savedAt:"2026-09-07",
+      homePlayers:[P("S. Gist",58),P("C. Roach",50),P("S. Phillips",50),P("S. Kingdon",57),P("A. Crispin",66),P("W. Palmer",58),P("G. Noble",62),P("T. Lochhead",72)],
+      awayPlayers:[P("M. Mogford",55),P("M. Swerling",48),P("G. Ley",54),P("D. Ley",59),P("D. Luxton",57),P("K. Godard",49),P("P. Stentiford",46),P("S. Stentiford",63)] },
+    "w2m1": { homeNum:2, awayNum:7, homeTotal:487, awayTotal:522, savedAt:"2026-09-14",
+      homePlayers:[P("A. Westcott",48),P("M. Latham",66),P("P. Jones",52),P("J. Edwards",40),P("R. Sanders",60),P("B. Darley",74),{name:"A. Stentiford",pins:77,twentySeven:true},P("T. Down",70)],
+      awayPlayers:[P("R. Easterbrook",73),P("M. Alford",67),P("D. Pullman",58),P("C. Wing",69),P("P. Crane",57),P("P. Gear",62),P("M. Tucker",77),P("G. Clark",63)] },
+    "w2m2": { homeNum:3, awayNum:6, homeTotal:499, awayTotal:428, savedAt:"2026-09-14",
+      homePlayers:[P("S. Stentiford",64),P("G. Loosemore",71),P("R. Emmett",63),P("H. Tapp",47),P("H. Hayes",63),P("T. Courtney",56),P("A.W. Tapp",55),P("P. Tapp",80)],
+      awayPlayers:[P("D. Holland",46),P("J. Hammett",57),P("L. Arscott",55),P("S. Holland",45),P("J. Mcreadie",45),P("L. Oldfield",43),P("R. Gay",79),P("I. Gay",58)] }
+  },
+  { // Division 2
+    "w1m0": { homeNum:5, awayNum:3, homeTotal:428, awayTotal:388, savedAt:"2026-09-07",
+      homePlayers:[P("W. Sing",56),P("J. Taylor",42),P("W. Brown",52),P("S. Trewin",72),P("S. Becklake",51),P("A. Tarr",50),P("O. Brown",49),P("M. Brown",54)],
+      awayPlayers:[P("S. Stanbury",46),P("R. Woollacott",55),P("R. Reed",62),P("M. Nichols",49),P("R. Stanbury",41),P("P. Snell",43),P("S. Selley",41),P("D. Snell",51)] },
+    "w1m1": { homeNum:6, awayNum:2, homeTotal:426, awayTotal:463, savedAt:"2026-09-07",
+      homePlayers:[P("D. Leworthy",43),P("S. Headon",49),P("M. Thurlow",57),P("J. Kingdon",52),P("S. Sexton",56),P("R. Kyngdon",61),P("N. Phillips",44),P("G. De Russett",64)],
+      awayPlayers:[P("S. Shaddick",63),P("D. Watts",57),P("M. Thomas",48),P("J. Robinson",63),P("N. Hutter",49),P("N. Widlake",61),P("J. Cook",57),P("A. Facey",68)] },
+    "w1m2": { homeNum:7, awayNum:1, homeTotal:413, awayTotal:414, savedAt:"2026-09-07",
+      homePlayers:[P("L. Kittow",38),P("N. Baillie",49),P("J. Weeks",57),P("M. Williams",45),P("J. Hayes",56),P("N. Lancells",50),P("T. Barry",65),P("W. Lock",53)],
+      awayPlayers:[P("M. Saunders",55),P("S. Wyatt",53),P("B. Phillips",54),P("G. Phillips",52),P("P. Lake",45),P("E. Kingdom",58),P("P. Saunders",51),P("F. Phillips",46)] },
+    "w1m3": { homeNum:8, awayNum:9, homeTotal:457, awayTotal:381, savedAt:"2026-09-07",
+      homePlayers:[P("D. Meschall",62),P("S. Snell",66),P("L. Hutchings",54),P("M. Latchford",63),P("G. Chanter",58),P("J. Stuckey",48),P("S. White",60),P("W. Barrow",46)],
+      awayPlayers:[P("T. Coars",46),P("I. Drummond",52),P("P. Crawford",47),P("S. Mayzoll",43),P("R. Millman",48),P("E. Maypall",52),P("T. Itaybate",35),P("R. Gibson",58)] },
+    "w2m0": { homeNum:1, awayNum:8, homeTotal:419, awayTotal:408, savedAt:"2026-09-14",
+      homePlayers:[P("M. Saunders",48),P("S. Wyatt",41),P("B. Phillips",63),P("P. Lake",52),P("M. Slade",47),P("E. Kingdom",59),P("P. Saunders",55),P("F. Phillips",56)],
+      awayPlayers:[P("R. Dart",51),P("S. Snell",50),P("L. Hutchings",55),P("J. Stuckey",52),P("M. Latchford",48),P("S. White",47),P("D. Meschall",51),P("W. Barrow",54)] },
+    "w2m1": { homeNum:2, awayNum:7, homeTotal:465, awayTotal:471, savedAt:"2026-09-14",
+      homePlayers:[P("S. Shaddick",53),P("D. Watts",69),P("J. Moore",54),P("J. Robinson",62),P("N. Widlake",56),P("B. Mitchell",67),P("J. Cook",47),P("A. Facey",57)],
+      awayPlayers:[P("J. Weeks",71),P("K. Chaple",52),P("N. Bailey",63),P("M. Williams",52),P("N. Lancells",45),P("J. Hayes",70),P("T. Barry",71),P("W. Locke",47)] },
+    "w2m2": { homeNum:3, awayNum:6, homeTotal:431, awayTotal:422, savedAt:"2026-09-14",
+      homePlayers:[P("S. Stanbury",39),P("R. Woolacott",45),P("M. Selley",47),P("M. Gardner",74),P("M. Nichols",61),P("P. Snell",55),P("S. Selley",47),P("D. Snell",63)],
+      awayPlayers:[P("D. Leworthy",63),P("S. Headon",50),P("M. Huxtable",60),P("J. Kingdon",53),P("S. Sexon",46),P("R. Kingdon",41),P("N. Phillips",49),P("G. De Russett",64)] },
+    "w2m3": { homeNum:4, awayNum:5, homeTotal:447, awayTotal:428, savedAt:"2026-09-14",
+      homePlayers:[P("P. Wood",52),P("C. Gunter",57),P("W. Kingdom",43),P("A. Baggott",61),P("C. Rowlins",66),P("D. Oliver",53),P("R. Wilcox",63),P("J. Blackmore",52)],
+      awayPlayers:[P("C. Boyd",47),P("J. Taylor",55),P("W. Brown",47),P("S. Trewin",46),P("S. Becklake",62),P("A. Tarr",63),P("O. Brown",58),P("M. Brown",50)] }
+  },
+  { // Division 3
+    "w1m0": { homeNum:5, awayNum:3, homeTotal:400, awayTotal:397, savedAt:"2026-09-07",
+      homePlayers:[P("S. Weaver",57),P("Unclear player (7 Sep, Jubilee Spoofers)",45),P("D. Nicholls",42),P("S. Kingdom",69),P("J. Weaver",38),P("O. Cronk",46),P("M. Rennerson",48),P("T. Weaver",50)],
+      awayPlayers:[P("M. Lucas",50),P("A. Freeman",43),P("C. Wamsley",40),P("I. Dobson",51),P("A. Petherson",38),P("R. Cole",46),P("Unclear player (7 Sep, Rackenford Rebels)",49),P("D. French",58)] },
+    "w1m1": { homeNum:6, awayNum:2, homeTotal:367, awayTotal:407, savedAt:"2026-09-07",
+      homePlayers:[P("C. Holt",49),P("C. Taylor",63),P("D. Lee",45),P("N. Cook",32),P("P. Green",45),P("M. Boundy",46),P("A. Ayre",45),P("C. Ayre",42)],
+      awayPlayers:[P("D. Gosling",39),P("A. Tucker",65),P("B. Browning",50),P("M. Pudgham",41),P("R. Sanderson",58),P("S. Matthews",51),P("F. Watts",53),P("M. Peace",50)] },
+    "w1m2": { homeNum:7, awayNum:1, homeTotal:477, awayTotal:463, savedAt:"2026-09-07",
+      homePlayers:[P("D. Huxtable",71),P("T. Dellow",58),P("J. Holland",59),P("H. Scott",45),P("H. Edgell",65),P("T. Knight",55),P("M. Wheaton",69),P("B. Murch",55)],
+      awayPlayers:[P("J. Dallyn",69),P("P. Seviour",56),P("R. Tucker",56),P("T. Watts",59),P("S. Selley",45),P("M. Dallyn",48),P("C. Tucker",68),P("K. Jones",62)] },
+    "w1m3": { homeNum:8, awayNum:9, homeTotal:359, awayTotal:353, savedAt:"2026-09-07",
+      homePlayers:[P("T. Wright",0),P("A. Bawden",41),P("R. Summersgill",36),P("J. Milnthorpe",52),P("M. Boundy",82),P("R. Whitehead",39),P("T. Killington",56),P("M. Jackson",53)],
+      awayPlayers:[P("P. Carter",35),P("R. Ward",47),P("K. McNeill",37),P("S. Symons",53),P("S. Lee",53),P("P. Taplin",46),P("W. Glover",44),P("N. Brend",38)] },
+    "w2m0": { homeNum:1, awayNum:8, homeTotal:480, awayTotal:494, savedAt:"2026-09-14",
+      homePlayers:[P("L. Warne",49),P("T. Jones",49),P("J. Dallyn",74),P("P. Seviour",61),P("R. Tucker",46),P("C. Tucker",47),P("K. Jones",83),P("M. Verney",71)],
+      awayPlayers:[P("T. Wright",52),P("A. Bowden",50),P("T. Killington",64),P("J. Milnthrope",65),P("R. Whitehead",47),P("M. Boundy",73),P("P. Charman",53),P("M. Jackson",90)] },
+    "w2m1": { homeNum:2, awayNum:7, homeTotal:424, awayTotal:425, savedAt:"2026-09-14",
+      homePlayers:[P("M. Gardner",38),P("A. Tucker",62),P("P. Carlton",64),P("M. Pudgham",69),P("R. Sanderson",58),P("S. Matthews",41),P("F. Watts",41),P("M. Peace",51)],
+      awayPlayers:[P("D. Huxtable",48),P("S. Cook",41),P("J. Holland",55),P("H. Edgell",57),P("N. Knight",46),P("W. Ayre",52),P("M. Wheaton",78),P("B. Murch",48)] },
+    "w2m2": { homeNum:3, awayNum:6, homeTotal:419, awayTotal:372, savedAt:"2026-09-14",
+      homePlayers:[P("A. Green",46),P("M. Lucas",53),P("I. Lucas",48),P("G. Wansrall",53),P("S. Warne",64),P("A. Robinson",45),P("R. Cole",67),P("D. French",44)],
+      awayPlayers:[P("C. Taylor",60),P("M. Bowen",42),P("R. Taylor",30),P("N. Cook",51),P("T. Cree",43),P("C. Ayre",53),P("A. Ayre",53),P("P. Pritchard",49)] },
+    "w2m3": { homeNum:4, awayNum:5, homeTotal:426, awayTotal:384, savedAt:"2026-09-14",
+      homePlayers:[P("T. Davey",74),P("R. Farrent",52),P("T. Elston",38),P("M. Elston",55),P("T. Holland",50),P("T. Hoskins",57),P("T. Thorne",47),P("D. Howells",53)],
+      awayPlayers:[P("S. Weaver",49),P("S. Green",62),P("S. Kingdon",52),P("S. Weaver",37),P("J. Weaver",47),P("T. Weaver",39),P("M. Rennerson",44),P("T. Weaver",54)] }
+  }
+];
+
+const CUP_COLORS = {
+  "Western Counties":"#3E7CA6",
+  "Sid Squire":"#C97A2B",
+  "Pidler":"#6FA86F",
+  "Front Pin":"#8E3B7D",
+  "Air Ambulance":"#4C8C4A",
+  "Concrete Cup":"#2B6E75",
+  "County Singles":"#B5433B",
+  "Individuals":"#B5433B",
+  "Millennium Cup":"#2B4A5A"
+};
+function eventColor(label){
+  const key = Object.keys(CUP_COLORS).find(k=>label.indexOf(k)===0);
+  return CUP_COLORS[key] || "#5B564A";
+}
+
+// month is 0-indexed; Sep-Dec -> season start year, Jan-Apr -> start year + 1
+function seasonDate(monthIdx, day){
+  const year = monthIdx >= 8 ? SEASON_START_YEAR : SEASON_START_YEAR + 1;
+  return new Date(year, monthIdx, day);
+}
+
+const SCHEDULE = [
+  {d:seasonDate(8,7),  label:"Mon 7 Sep",  type:"league", week:1,  matches:[[5,3],[6,2],[7,1],[8,9]], bye:4},
+  {d:seasonDate(8,14), label:"Mon 14 Sep", type:"league", week:2,  matches:[[1,8],[2,7],[3,6],[4,5]], bye:9},
+  {d:seasonDate(8,21), label:"Mon 21 Sep", type:"event",  text:"Western Counties – Round 1"},
+  {d:seasonDate(8,28), label:"Mon 28 Sep", type:"league", week:3,  matches:[[6,4],[7,3],[8,2],[9,1]], bye:5},
+  {d:seasonDate(8,30), label:"Wed 30 Sep", type:"event",  text:"Sid Squire – Round 1"},
+  {d:seasonDate(9,5),  label:"Mon 5 Oct",  type:"event",  text:"Pidler – Round 1"},
+  {d:seasonDate(9,7),  label:"Wed 7 Oct",  type:"event",  text:"Front Pin – Round 1"},
+  {d:seasonDate(9,12), label:"Mon 12 Oct", type:"league", week:4,  matches:[[2,9],[3,8],[4,7],[5,6]], bye:1},
+  {d:seasonDate(9,14), label:"Wed 14 Oct", type:"event",  text:"Air Ambulance – Round 1"},
+  {d:seasonDate(9,19), label:"Mon 19 Oct", type:"event",  text:"Concrete Cup – Round 1"},
+  {d:seasonDate(9,21), label:"Wed 21 Oct", type:"event",  text:"County Singles – Group Stage"},
+  {d:seasonDate(9,26), label:"Mon 26 Oct", type:"league", week:5,  matches:[[8,6],[9,5],[1,4],[2,3]], bye:7},
+  {d:seasonDate(9,28), label:"Wed 28 Oct", type:"event",  text:"Sid Squire – Round 2"},
+  {d:seasonDate(10,2), label:"Mon 2 Nov",  type:"league", week:6,  matches:[[3,1],[4,9],[5,8],[6,7]], bye:2},
+  {d:seasonDate(10,4), label:"Wed 4 Nov",  type:"event",  text:"Front Pin – Round 2"},
+  {d:seasonDate(10,9), label:"Mon 9 Nov",  type:"event",  text:"Western Counties – Round 2"},
+  {d:seasonDate(10,11),label:"Wed 11 Nov", type:"event",  text:"Air Ambulance – Round 2"},
+  {d:seasonDate(10,16),label:"Mon 16 Nov", type:"league", week:7,  matches:[[7,5],[8,4],[9,3],[1,2]], bye:6},
+  {d:seasonDate(10,18),label:"Wed 18 Nov", type:"event",  text:"Individuals, Pairs, Group & Senior – Round 1"},
+  {d:seasonDate(10,23),label:"Mon 23 Nov", type:"event",  text:"Pidler – Round 2"},
+  {d:seasonDate(10,25),label:"Wed 25 Nov", type:"event",  text:"Sid Squire – Round 3"},
+  {d:seasonDate(10,30),label:"Mon 30 Nov", type:"league", week:8,  matches:[[9,7],[1,6],[2,5],[3,4]], bye:8},
+  {d:seasonDate(11,2), label:"Wed 2 Dec",  type:"event",  text:"Front Pin – Round 3"},
+  {d:seasonDate(11,7), label:"Mon 7 Dec",  type:"event",  text:"Concrete Cup – Round 2"},
+  {d:seasonDate(11,9), label:"Wed 9 Dec",  type:"event",  text:"Air Ambulance – Round 3 (4×4)"},
+  {d:seasonDate(11,14),label:"Mon 14 Dec", type:"league", week:9,  matches:[[4,2],[5,1],[6,9],[7,8]], bye:3},
+  {d:seasonDate(11,16),label:"Wed 16 Dec", type:"event",  text:"Individuals, Pairs, Group & Senior – Round 2"},
+  {d:seasonDate(11,21),label:"Mon 21 Dec", type:"league", week:10, matches:[[3,5],[2,6],[1,7],[9,8]], bye:4},
+  {d:seasonDate(11,23),label:"Wed 23 Dec", type:"event",  text:"County Singles Finals & Youth Finals"},
+  {d:seasonDate(0,4),  label:"Mon 4 Jan",  type:"league", week:11, matches:[[8,1],[7,2],[6,3],[5,4]], bye:9},
+  {d:seasonDate(0,13), label:"Wed 13 Jan", type:"event",  text:"Front Pin – Finals"},
+  {d:seasonDate(0,18), label:"Mon 18 Jan", type:"league", week:12, matches:[[4,6],[3,7],[2,8],[1,9]], bye:5},
+  {d:seasonDate(0,20), label:"Wed 20 Jan", type:"event",  text:"Sid Squire – Semi-Final 1"},
+  {d:seasonDate(0,25), label:"Mon 25 Jan", type:"event",  text:"Pidler – Round 3"},
+  {d:seasonDate(0,27), label:"Wed 27 Jan", type:"event",  text:"Sid Squire – Semi-Final 2"},
+  {d:seasonDate(1,1),  label:"Mon 1 Feb",  type:"league", week:13, matches:[[9,2],[8,3],[7,4],[6,5]], bye:1},
+  {d:seasonDate(1,3),  label:"Wed 3 Feb",  type:"event",  text:"Air Ambulance – Finals"},
+  {d:seasonDate(1,8),  label:"Mon 8 Feb",  type:"event",  text:"Concrete Cup – Round 3"},
+  {d:seasonDate(1,10), label:"Wed 10 Feb", type:"event",  text:"Individuals, Pairs & Seniors"},
+  {d:seasonDate(1,15), label:"Mon 15 Feb", type:"league", week:14, matches:[[6,8],[5,9],[4,1],[3,2]], bye:7},
+  {d:seasonDate(1,17), label:"Wed 17 Feb", type:"event",  text:"Western Counties – Semi Finals"},
+  {d:seasonDate(1,22), label:"Mon 22 Feb", type:"league", week:15, matches:[[1,3],[9,4],[8,5],[7,6]], bye:2},
+  {d:seasonDate(1,24), label:"Wed 24 Feb", type:"event",  text:"Pidler – Semi Finals"},
+  {d:seasonDate(2,1),  label:"Mon 1 Mar",  type:"league", week:16, matches:[[5,7],[4,8],[3,9],[2,1]], bye:6},
+  {d:seasonDate(2,3),  label:"Wed 3 Mar",  type:"event",  text:"Concrete Cup – Semi Final"},
+  {d:seasonDate(2,8),  label:"Mon 8 Mar",  type:"league", week:17, matches:[[7,9],[6,1],[5,2],[4,3]], bye:8},
+  {d:seasonDate(2,10), label:"Wed 10 Mar", type:"event",  text:"Sid Squire – Finals"},
+  {d:seasonDate(2,15), label:"Mon 15 Mar", type:"league", week:18, matches:[[2,4],[1,5],[9,6],[8,7]], bye:3},
+  {d:seasonDate(2,22), label:"Mon 22 Mar", type:"event",  text:"Western Counties – Final"},
+  {d:seasonDate(2,31), label:"Wed 31 Mar", type:"event",  text:"Pidler – Finals"},
+  {d:seasonDate(3,5),  label:"Mon 5 Apr",  type:"event",  text:"Millennium Cup"},
+  {d:seasonDate(3,12), label:"Mon 12 Apr", type:"event",  text:"Concrete Cup – Final"}
+];
+
+/* ---------- state ---------- */
+const state = {
+  tab: "fixtures",
+  div: 0,
+  teams: DEFAULT_TEAMS.map(a=>a.slice()),
+  points: Object.assign({}, DEFAULT_POINTS),
+  results: [{}, {}, {}],
+  withdrawn: [[false,false,false,false,false,false,false,false,false],
+              [false,false,false,false,false,false,false,false,false],
+              [false,false,false,false,false,false,false,false,false]],
+  openForm: null,   // {week, matchIndex}
+  formData: null,   // {home:[{name,pins}], away:[{name,pins}]}
+  selectedPlayer: null,
+  selectedPlayerDiv: null,
+  selectedPlayerTeam: null,
+  expandedMatches: new Set(),
+  selectedTeam: null,   // {div, num}
+  playersDiv: "all",
+  playerSearch: "",
+  playerSort: { key:"avg", dir:"desc" },
+  readOnly: true,
+  loaded: false
+};
+
+/* ---------- shared-state persistence ----------
+   This page IS the record: the current teams/points/results live in the
+   #state-data JSON block embedded in the document. To change something
+   for everyone, we update that block and re-publish the whole page via
+   the "artifact" capability. Nothing is saved anywhere else. */
+
+function loadInitialState(){
+  try{
+    const raw = document.getElementById("state-data").textContent;
+    const data = JSON.parse(raw);
+    if(data.teams) state.teams = data.teams;
+    if(data.points) state.points = data.points;
+    if(data.results) state.results = data.results;
+    if(data.withdrawn) state.withdrawn = data.withdrawn;
+  }catch(e){
+    // fall back to the built-in defaults already set on `state`
+  }
+  state.loaded = true;
+}
+
+async function persistState(){
+  const dataEl = document.getElementById("state-data");
+  dataEl.textContent = JSON.stringify({ teams: state.teams, points: state.points, results: state.results, withdrawn: state.withdrawn });
+
+  if(!window.claude || typeof window.claude.use !== "function"){
+    showToast("Preview only — publish this page to save changes for everyone");
+    return false;
+  }
+  let artifact;
+  try{ artifact = await window.claude.use("artifact"); }catch(e){ artifact = null; }
+  if(!artifact){
+    showToast("Preview only — publish this page to save changes for everyone");
+    return false;
+  }
+  try{
+    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    await artifact.publish(html);
+    return true;
+  }catch(e){
+    const code = e && e.code;
+    if(code === "not_writer" || code === "not_granted" || code === "consent_required"){
+      state.readOnly = true;
+      showToast("This view is read-only");
+    } else if(code === "conflict"){
+      // someone else just published — the page is already reloading to their version
+    } else if(code === "rate_limited"){
+      showToast("Saving too fast — wait a moment and try again");
+    } else {
+      showToast("Couldn't save — try again");
+    }
+    return false;
+  }
+}
+
+/* ---------- toast ---------- */
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+/* ---------- current-week detection ---------- */
+function findCurrentIndex(){
+  const now=new Date();
+  let idx = SCHEDULE.findIndex(row=>row.d >= now);
+  if(idx===-1) idx = SCHEDULE.length-1;
+  return idx;
+}
+
+/* ---------- rendering: nav ---------- */
+function renderNav(){
+  const tabs=[["fixtures","Fixtures & Results"],["table","League Table"],["players","Player Averages"],["alleys","Alleys"]];
+  const nav=document.getElementById("tabs");
+  nav.innerHTML = tabs.map(([id,label])=>
+    `<button class="${state.tab===id?'active':''}" onclick="setTab('${id}')">${label}</button>`
+  ).join("");
+}
+function setTab(id){ state.tab=id; state.openForm=null; state.selectedPlayer=null; state.selectedPlayerTeam=null; state.selectedPlayerDiv=null; state.selectedTeam=null; state.playerSearch=""; state.expandedMatches=new Set(); render(); }
+function setDiv(i){ state.div=i; state.openForm=null; state.selectedTeam=null; state.expandedMatches=new Set(); render(); }
+function setPlayersDiv(v){ state.playersDiv=v; state.playerSearch=""; state.selectedPlayer=null; state.selectedPlayerTeam=null; state.selectedPlayerDiv=null; state.selectedTeam=null; render(); }
+function playersDivSwitchHTML(){
+  const opts = [["all","All Divisions"],[0,DIVISION_LABELS[0]],[1,DIVISION_LABELS[1]],[2,DIVISION_LABELS[2]]];
+  return `<div class="divswitch">${opts.map(([v,label])=>{
+    const active = state.playersDiv === v;
+    const arg = typeof v === "number" ? v : `'${v}'`;
+    return `<button class="${active?'active':''}" onclick="setPlayersDiv(${arg})">${label}</button>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- rendering: fixtures ---------- */
+function divSwitchHTML(){
+  return `<div class="divswitch">${DIVISION_LABELS.map((l,i)=>
+    `<button class="${state.div===i?'active':''}" onclick="setDiv(${i})">${l}</button>`
+  ).join("")}</div>`;
+}
+
+function possessive(name){
+  return name.endsWith("s") ? name + "'" : name + "'s";
+}
+
+function matchDiscrepancy(res){
+  const homeSum = (res.homePlayers||[]).reduce((s,p)=>s+p.pins,0);
+  const awaySum = (res.awayPlayers||[]).reduce((s,p)=>s+p.pins,0);
+  return { home: homeSum !== res.homeTotal, away: awaySum !== res.awayTotal, homeSum, awaySum };
+}
+
+function toggleMatchDetails(key){
+  if(state.expandedMatches.has(key)) state.expandedMatches.delete(key);
+  else state.expandedMatches.add(key);
+  render();
+}
+
+function buildMatchDetailsHTML(divIdx, m, res){
+  const teams = state.teams[divIdx];
+  const homeName = teams[m[0]-1], awayName = teams[m[1]-1];
+  const disc = matchDiscrepancy(res);
+  let html = `<div class="match-detail"><div class="match-detail-cols">
+      <div class="match-detail-col"><h4>${homeName}</h4>${(res.homePlayers||[]).map(p=>`<div class="match-detail-row"><span>${p.name}</span><span>${p.pins}</span></div>`).join("")}</div>
+      <div class="match-detail-col"><h4>${awayName}</h4>${(res.awayPlayers||[]).map(p=>`<div class="match-detail-row"><span>${p.name}</span><span>${p.pins}</span></div>`).join("")}</div>
+    </div>`;
+  if(disc.home || disc.away){
+    const bits = [];
+    if(disc.home) bits.push(`${possessive(homeName)} individual scores add up to ${disc.homeSum}, but the sheet's printed total was ${res.homeTotal}`);
+    if(disc.away) bits.push(`${possessive(awayName)} individual scores add up to ${disc.awaySum}, but the sheet's printed total was ${res.awayTotal}`);
+    html += `<p class="note">* ${bits.join("; ")}. The printed total is used as the official score.</p>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function buildFixturesView(){
+  const wrap=document.createElement("div");
+  wrap.innerHTML = divSwitchHTML();
+  const curIdx = findCurrentIndex();
+  const list=document.createElement("div");
+  const divIdx = state.div;
+  const positions = {};
+  computeTable(divIdx).forEach((t,i)=>{ positions[t.num] = i+1; });
+
+  SCHEDULE.forEach((row,i)=>{
+    const isNow = i===curIdx;
+    if(row.type==="event"){
+      const div=document.createElement("div");
+      div.className="week-row is-event"+(isNow?" is-now":"");
+      div.innerHTML=`<div class="week-head">
+          <span class="week-date">${row.label}</span>
+          <span class="event-label" style="background:${eventColor(row.text)}">${row.text}</span>
+          ${isNow?'<span class="now-chip">This week</span>':''}
+        </div>`;
+      list.appendChild(div);
+      return;
+    }
+    // league week
+    const div=document.createElement("div");
+    div.className="week-row"+(isNow?" is-now":"");
+    const wd = state.withdrawn[divIdx] || [];
+    let matchesHTML = "";
+    row.matches.forEach((m,mi)=>{
+      if(wd[m[0]-1] || wd[m[1]-1]){
+        const withdrawnNum = wd[m[0]-1] ? m[0] : m[1];
+        matchesHTML += `<div class="match"><span class="bye-note">Fixture void — ${teamLinkByNum(divIdx,withdrawnNum)} withdrew from the league</span></div>`;
+        return;
+      }
+      const key = `w${row.week}m${mi}`;
+      const res = state.results[divIdx][key];
+      const isOpen = state.openForm && state.openForm.week===row.week && state.openForm.matchIndex===mi;
+      const detailKey = `${divIdx}:${key}`;
+      const isExpanded = state.expandedMatches.has(detailKey);
+      matchesHTML += `<div class="match">
+          <span class="pin">${positions[m[0]] || "–"}</span>
+          <span class="teamname">${teamLinkByNum(divIdx,m[0])}</span>
+          <span class="vs">v</span>
+          <span class="pin">${positions[m[1]] || "–"}</span>
+          <span class="teamname">${teamLinkByNum(divIdx,m[1])}</span>`;
+      if(res){
+        const disc = matchDiscrepancy(res);
+        const homeDisplay = res.homeTotal + (disc.home ? "*" : "");
+        const awayDisplay = res.awayTotal + (disc.away ? "*" : "");
+        matchesHTML += `<span class="score-display">${homeDisplay} – ${awayDisplay}</span>
+          <button class="linklike muted" onclick="toggleMatchDetails('${detailKey}')">${isExpanded?"Hide scores":"Individual scores"}</button>`;
+        if(!state.readOnly){
+          matchesHTML += `<button class="linklike muted" onclick="editResult(${row.week},${mi})">Edit</button>
+          <button class="linklike muted" onclick="clearResult(${row.week},${mi})">Clear</button>`;
+        }
+      } else if(!state.readOnly){
+        matchesHTML += `<button class="linklike" onclick="${isOpen?`closeForm()`:`openForm(${row.week},${mi})`}">${isOpen?'Cancel':'Enter score'}</button>`;
+      } else {
+        matchesHTML += `<span class="bye-note">Not played yet</span>`;
+      }
+      matchesHTML += `</div>`;
+      if(res && isExpanded){
+        matchesHTML += buildMatchDetailsHTML(divIdx, m, res);
+      }
+      if(isOpen){
+        matchesHTML += `<div id="score-form-slot"></div>`;
+      }
+    });
+    div.innerHTML = `<div class="week-head">
+        <span class="week-date">${row.label}</span>
+        <span class="bye-note">${teamLinkByNum(divIdx,row.bye)} — bye this week</span>
+        ${isNow?'<span class="now-chip">This week</span>':''}
+      </div>
+      <div class="matches">${matchesHTML}</div>`;
+    list.appendChild(div);
+  });
+
+  wrap.appendChild(list);
+
+  const anyDiscrepancy = Object.values(state.results[state.div]).some(res=>{
+    const disc = matchDiscrepancy(res);
+    return disc.home || disc.away;
+  });
+  if(anyDiscrepancy){
+    const note=document.createElement("p");
+    note.className="note";
+    note.textContent="* on a score means the individual player pins on file don't quite add up to the sheet's own printed total — tap \"Individual scores\" on that fixture for details. The printed total is always used as the official score.";
+    wrap.appendChild(note);
+  }
+
+  // mount the live score form if one is open
+  if(state.openForm){
+    setTimeout(()=>{
+      const slot=document.getElementById("score-form-slot");
+      if(slot) slot.appendChild(buildScoreForm());
+    },0);
+  }
+  return wrap;
+}
+
+/* ---------- score entry form ---------- */
+function openForm(week,matchIndex){
+  const row = SCHEDULE.find(r=>r.type==="league"&&r.week===week);
+  const m = row.matches[matchIndex];
+  state.openForm = {week,matchIndex};
+  state.formData = { home:[{name:"",pins:0}], away:[{name:"",pins:0}] };
+  render();
+}
+function editResult(week,matchIndex){
+  const key=`w${week}m${matchIndex}`;
+  const res = state.results[state.div][key];
+  state.openForm = {week,matchIndex};
+  state.formData = {
+    home: res.homePlayers.map(p=>({name:p.name,pins:p.pins})),
+    away: res.awayPlayers.map(p=>({name:p.name,pins:p.pins}))
+  };
+  render();
+}
+function closeForm(){ state.openForm=null; state.formData=null; render(); }
+
+function addPlayerRow(side){
+  state.formData[side].push({name:"",pins:0});
+  render();
+}
+function removePlayerRow(side,idx){
+  state.formData[side].splice(idx,1);
+  if(state.formData[side].length===0) state.formData[side].push({name:"",pins:0});
+  render();
+}
+function updatePlayer(side,idx,field,value){
+  state.formData[side][idx][field] = field==="pins" ? (parseInt(value,10)||0) : value;
+  // update total display without full re-render for smoother typing
+  const total = state.formData[side].reduce((s,p)=>s+(parseInt(p.pins,10)||0),0);
+  const totalEl = document.getElementById("total-"+side);
+  if(totalEl) totalEl.textContent = (side==="home"?"Home":"Away")+" total: "+total;
+}
+
+function buildScoreForm(){
+  const {week,matchIndex} = state.openForm;
+  const row = SCHEDULE.find(r=>r.type==="league"&&r.week===week);
+  const m = row.matches[matchIndex];
+  const teams = state.teams[state.div];
+  const homeName = teams[m[0]-1], awayName = teams[m[1]-1];
+
+  const form=document.createElement("div");
+  form.className="score-form";
+
+  function colHTML(side,label){
+    const rows = state.formData[side].map((p,idx)=>`
+      <div class="player-row">
+        <input type="text" placeholder="Player name" value="${p.name.replace(/"/g,'&quot;')}"
+          oninput="updatePlayer('${side}',${idx},'name',this.value)">
+        <input type="number" min="0" placeholder="Pins" value="${p.pins||''}"
+          oninput="updatePlayer('${side}',${idx},'pins',this.value)">
+        <button title="Remove" onclick="removePlayerRow('${side}',${idx})">×</button>
+      </div>`).join("");
+    const total = state.formData[side].reduce((s,p)=>s+(parseInt(p.pins,10)||0),0);
+    return `<div class="score-col">
+        <h4>${label}</h4>
+        ${rows}
+        <button class="addrow" onclick="addPlayerRow('${side}')">+ Add player</button>
+        <div class="col-total" id="total-${side}">${label} total: ${total}</div>
+      </div>`;
+  }
+
+  form.innerHTML = `<div class="score-cols">
+      ${colHTML("home",homeName)}
+      ${colHTML("away",awayName)}
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveResult(${week},${matchIndex})">Save result</button>
+      <button class="btn-secondary" onclick="closeForm()">Cancel</button>
+    </div>`;
+  return form;
+}
+
+async function saveResult(week,matchIndex){
+  const row = SCHEDULE.find(r=>r.type==="league"&&r.week===week);
+  const m = row.matches[matchIndex];
+  const home = state.formData.home.filter(p=>p.name.trim()!=="" || p.pins>0);
+  const away = state.formData.away.filter(p=>p.name.trim()!=="" || p.pins>0);
+  const homeTotal = home.reduce((s,p)=>s+(parseInt(p.pins,10)||0),0);
+  const awayTotal = away.reduce((s,p)=>s+(parseInt(p.pins,10)||0),0);
+  const key = `w${week}m${matchIndex}`;
+  state.results[state.div][key] = {
+    homeNum:m[0], awayNum:m[1],
+    homePlayers:home, awayPlayers:away,
+    homeTotal, awayTotal,
+    savedAt:new Date().toISOString()
+  };
+  state.openForm=null; state.formData=null;
+  render();
+  const ok = await persistState();
+  if(ok) showToast("Result saved");
+}
+async function clearResult(week,matchIndex){
+  const key=`w${week}m${matchIndex}`;
+  delete state.results[state.div][key];
+  render();
+  const ok = await persistState();
+  if(ok) showToast("Result cleared");
+}
+
+/* ---------- league table ---------- */
+function computeTable(divIdx){
+  const teams = state.teams[divIdx];
+  const stats = teams.map((name,i)=>({num:i+1,name,played:0,won:0,drawn:0,lost:0,pinsFor:0,pinsAgainst:0,points:0}));
+  const results = state.results[divIdx];
+  Object.values(results).forEach(res=>{
+    const home = stats[res.homeNum-1], away = stats[res.awayNum-1];
+    if(!home||!away) return;
+    home.played++; away.played++;
+    home.pinsFor+=res.homeTotal; home.pinsAgainst+=res.awayTotal;
+    away.pinsFor+=res.awayTotal; away.pinsAgainst+=res.homeTotal;
+    if(res.homeTotal>res.awayTotal){ home.won++; away.lost++; home.points+=state.points.win; away.points+=state.points.loss; }
+    else if(res.homeTotal<res.awayTotal){ away.won++; home.lost++; away.points+=state.points.win; home.points+=state.points.loss; }
+    else { home.drawn++; away.drawn++; home.points+=state.points.draw; away.points+=state.points.draw; }
+  });
+  const wd = state.withdrawn[divIdx] || [];
+  const active = stats.filter((s,i)=>!wd[i]);
+  active.sort((a,b)=> b.points-a.points
+    || (b.pinsFor-b.pinsAgainst)-(a.pinsFor-a.pinsAgainst)
+    || b.pinsFor-a.pinsFor
+    || a.name.localeCompare(b.name));
+  return active;
+}
+
+function teamLinkByNum(divIdx, num){
+  const name = state.teams[divIdx][num-1];
+  if(name===undefined) return "";
+  return `<span class="teamlink" onclick="event.stopPropagation(); viewTeam(${divIdx},${num})">${name}</span>`;
+}
+function teamLinkByName(divIdx, name){
+  const num = state.teams[divIdx].indexOf(name)+1;
+  if(num<=0) return name;
+  return teamLinkByNum(divIdx, num);
+}
+function viewTeam(divIdx, num){
+  state.selectedTeam = { div:divIdx, num:num };
+  render();
+}
+function closeTeamProfile(){
+  state.selectedTeam = null;
+  render();
+}
+
+function computeTeamRecord(divIdx, teamNum){
+  return computeTable(divIdx).find(s=>s.num===teamNum) || null;
+}
+
+function buildTeamResults(divIdx, teamNum){
+  const teams = state.teams[divIdx];
+  const rows = [];
+  Object.entries(state.results[divIdx]).forEach(([key,res])=>{
+    if(res.homeNum!==teamNum && res.awayNum!==teamNum) return;
+    const m = key.match(/^w(\d+)m(\d+)$/);
+    const week = parseInt(m[1],10);
+    const row = SCHEDULE.find(r=>r.type==="league" && r.week===week);
+    const isHome = res.homeNum===teamNum;
+    const oppNum = isHome ? res.awayNum : res.homeNum;
+    const forScore = isHome ? res.homeTotal : res.awayTotal;
+    const againstScore = isHome ? res.awayTotal : res.homeTotal;
+    const result = forScore>againstScore ? "W" : forScore<againstScore ? "L" : "D";
+    rows.push({ week, dateLabel: row?row.label:`Week ${week}`, oppNum, isHome, forScore, againstScore, result });
+  });
+  rows.sort((a,b)=>a.week-b.week);
+  return rows;
+}
+
+function buildTeamUpcoming(divIdx, teamNum, limit){
+  const results = state.results[divIdx];
+  const wd = state.withdrawn[divIdx] || [];
+  const curIdx = findCurrentIndex();
+  const upcoming = [];
+  for(let i=curIdx; i<SCHEDULE.length && upcoming.length<limit; i++){
+    const row = SCHEDULE[i];
+    if(row.type !== "league") continue;
+    if(row.bye === teamNum){
+      upcoming.push({ dateLabel: row.label, kind: "bye" });
+      continue;
+    }
+    const mi = row.matches.findIndex(m => m[0]===teamNum || m[1]===teamNum);
+    if(mi === -1) continue;
+    const m = row.matches[mi];
+    const key = `w${row.week}m${mi}`;
+    if(results[key]) continue; // already played
+    const isHome = m[0]===teamNum;
+    const oppNum = isHome ? m[1] : m[0];
+    if(wd[oppNum-1]){
+      upcoming.push({ dateLabel: row.label, kind: "void", oppNum });
+      continue;
+    }
+    upcoming.push({ dateLabel: row.label, kind: "match", oppNum, isHome });
+  }
+  return upcoming;
+}
+
+function buildTeamProfile(divIdx, teamNum){
+  const wrap=document.createElement("div");
+  const teamName = state.teams[divIdx][teamNum-1];
+
+  const back=document.createElement("button");
+  back.className="linklike";
+  back.style.marginBottom="10px";
+  back.textContent="← Back";
+  back.onclick=closeTeamProfile;
+  wrap.appendChild(back);
+
+  if(teamName===undefined){
+    const note=document.createElement("p");
+    note.className="note";
+    note.textContent="Team not found.";
+    wrap.appendChild(note);
+    return wrap;
+  }
+
+  const isWithdrawn = (state.withdrawn[divIdx]||[])[teamNum-1];
+  const info = (TEAM_INFO[divIdx]||[])[teamNum-1];
+  const lastYear = (LAST_SEASON[divIdx]||[])[teamNum-1];
+
+  const header=document.createElement("div");
+  header.className="settings-block";
+  let headHTML = `<h3>${teamName}</h3><p class="note">${DIVISION_LABELS[divIdx]}</p>`;
+  if(isWithdrawn) headHTML += `<p class="note">This team has withdrawn from the league.</p>`;
+  if(info){
+    if(info.captains && info.captains.length){
+      headHTML += `<p class="note">Captain${info.captains.length>1?'s':''}: ${info.captains.join(", ")}</p>`;
+    }
+    if(info.venue){
+      const alleyBit = info.alley ? ` (${info.alley})` : "";
+      headHTML += `<p class="note">Plays at: ${info.venue}${alleyBit}${info.venuePhone?` — Tel: ${info.venuePhone}`:""}</p>`;
+    }
+  }
+  if(lastYear){
+    headHTML += `<p class="note">Last season: finished ${ordinal(lastYear.position)} in ${lastYear.division} (P${lastYear.played} W${lastYear.won} D${lastYear.drawn} L${lastYear.lost}, ${lastYear.points} pts)</p>`;
+  }
+  header.innerHTML = headHTML;
+  wrap.appendChild(header);
+
+  if(!isWithdrawn){
+    const record = computeTeamRecord(divIdx, teamNum);
+    if(record){
+      const recBlock=document.createElement("div");
+      recBlock.className="settings-block";
+      recBlock.innerHTML = `<h3>Record — this season</h3>
+        <div class="stat-row">
+          <div class="stat-block"><strong>${record.played}</strong><span>Played</span></div>
+          <div class="stat-block"><strong>${record.won}</strong><span>Won</span></div>
+          <div class="stat-block"><strong>${record.drawn}</strong><span>Drawn</span></div>
+          <div class="stat-block"><strong>${record.lost}</strong><span>Lost</span></div>
+          <div class="stat-block"><strong>${record.points}</strong><span>Points</span></div>
+        </div>`;
+      wrap.appendChild(recBlock);
+    }
+
+    const upcoming = buildTeamUpcoming(divIdx, teamNum, 5);
+    if(upcoming.length){
+      const uHeading=document.createElement("h3");
+      uHeading.className="division-heading";
+      uHeading.textContent="Next fixtures";
+      wrap.appendChild(uHeading);
+      const utbl=document.createElement("table");
+      utbl.className="league-table";
+      utbl.innerHTML = `<thead><tr><th>Date</th><th>Fixture</th><th>Venue</th></tr></thead>
+        <tbody>${upcoming.map(u=>{
+            if(u.kind==="bye") return `<tr><td>${u.dateLabel}</td><td class="name" colspan="2">Bye</td></tr>`;
+            if(u.kind==="void") return `<tr><td>${u.dateLabel}</td><td class="name" colspan="2">Void — ${teamLinkByNum(divIdx,u.oppNum)} withdrew</td></tr>`;
+            return `<tr><td>${u.dateLabel}</td><td class="name">${teamLinkByNum(divIdx,u.oppNum)}</td><td>${u.isHome?"Home":"Away"}</td></tr>`;
+          }).join("")}</tbody>`;
+      wrap.appendChild(utbl);
+    }
+
+    const results = buildTeamResults(divIdx, teamNum);
+    if(results.length){
+      const rHeading=document.createElement("h3");
+      rHeading.className="division-heading";
+      rHeading.textContent="Results";
+      wrap.appendChild(rHeading);
+      const tbl=document.createElement("table");
+      tbl.className="league-table";
+      tbl.innerHTML = `<thead><tr><th>Date</th><th>Opponent</th><th>Venue</th><th>Score</th><th>Result</th></tr></thead>
+        <tbody>${results.map(r=>`<tr>
+            <td>${r.dateLabel}</td>
+            <td class="name">${teamLinkByNum(divIdx, r.oppNum)}</td>
+            <td>${r.isHome?"Home":"Away"}</td>
+            <td class="num">${r.forScore} – ${r.againstScore}</td>
+            <td class="num pts">${r.result}</td>
+          </tr>`).join("")}</tbody>`;
+      wrap.appendChild(tbl);
+    } else {
+      const note=document.createElement("p");
+      note.className="note";
+      note.textContent="No results recorded yet.";
+      wrap.appendChild(note);
+    }
+
+    const players = buildTeamPlayerStats(divIdx, teamName);
+    if(players.length){
+      const heading=document.createElement("h3");
+      heading.className="division-heading";
+      heading.textContent="Players";
+      wrap.appendChild(heading);
+      const ptbl=document.createElement("table");
+      ptbl.className="league-table";
+      ptbl.innerHTML = `<thead><tr><th>Player</th><th>P</th><th>Total</th><th>Avg</th><th>% of team pins</th></tr></thead>
+        <tbody>${players.map(p=>`<tr class="playerrow" onclick="viewPlayer(${divIdx},'${encodeURIComponent(p.name)}','${encodeURIComponent(p.team)}')">
+            <td class="name">${p.name}</td>
+            <td class="num">${p.games}</td>
+            <td class="num">${p.total}</td>
+            <td class="num pts">${p.avg.toFixed(1)}</td>
+            <td class="num">${p.pct.toFixed(1)}%</td>
+          </tr>`).join("")}</tbody>`;
+      wrap.appendChild(ptbl);
+      const note=document.createElement("p");
+      note.className="note";
+      note.textContent="Share of the team's total pins scored this season, by player.";
+      wrap.appendChild(note);
+    }
+  }
+
+  return wrap;
+}
+
+function ordinal(n){
+  const s = ["th","st","nd","rd"], v = n%100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+
+function buildTeamPlayerStats(divIdx, teamName){
+  const index = buildPlayerIndex(divIdx);
+  const players = Object.values(index).map(playerStats).filter(p=>p.team===teamName);
+  const grandTotal = players.reduce((s,p)=>s+p.total,0);
+  players.sort((a,b)=> b.total-a.total || a.name.localeCompare(b.name));
+  return players.map(p=>({ ...p, pct: grandTotal ? (p.total/grandTotal*100) : 0 }));
+}
+
+function withdrawnNote(divIdx){
+  const wd = state.withdrawn[divIdx] || [];
+  const nums = [];
+  wd.forEach((w,i)=>{ if(w) nums.push(i+1); });
+  if(nums.length===0) return "";
+  const links = nums.map(n=>teamLinkByNum(divIdx,n)).join(", ");
+  return `<p class="note">${links} ${nums.length>1?"have":"has"} withdrawn from ${DIVISION_LABELS[divIdx]} — remaining fixtures show as void on the Fixtures tab.</p>`;
+}
+
+function buildTableView(){
+  const wrap=document.createElement("div");
+  wrap.innerHTML = divSwitchHTML() + withdrawnNote(state.div);
+  const divIdx = state.div;
+  const stats = computeTable(divIdx);
+  const tbl=document.createElement("table");
+  tbl.className="league-table";
+  tbl.innerHTML = `<thead><tr>
+      <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th>
+      <th>Pins for</th><th>Pins agst</th><th>Diff</th><th>Pts</th>
+    </tr></thead>
+    <tbody>
+      ${stats.map((s,i)=>`<tr>
+        <td class="num">${i+1}</td>
+        <td class="name">${teamLinkByNum(divIdx, s.num)}</td>
+        <td class="num">${s.played}</td>
+        <td class="num">${s.won}</td>
+        <td class="num">${s.drawn}</td>
+        <td class="num">${s.lost}</td>
+        <td class="num">${s.pinsFor}</td>
+        <td class="num">${s.pinsAgainst}</td>
+        <td class="num">${s.pinsFor-s.pinsAgainst}</td>
+        <td class="num pts">${s.points}</td>
+      </tr>`).join("")}
+    </tbody>`;
+  wrap.appendChild(tbl);
+  const note=document.createElement("p");
+  note.className="note";
+  note.textContent="Table updates automatically as results are entered on the Fixtures & Results tab.";
+  wrap.appendChild(note);
+  return wrap;
+}
+
+/* ---------- individual player averages & profiles ---------- */
+function normalizeName(n){ return n.trim().replace(/\s+/g," ").toLowerCase(); }
+
+function playerKey(name, team){ return normalizeName(name) + "|" + team; }
+
+function buildPlayerIndex(divIdx){
+  const teams = state.teams[divIdx];
+  const index = {}; // "name|team" -> {name, team, appearances}
+  Object.entries(state.results[divIdx]).forEach(([key, res])=>{
+    const m = key.match(/^w(\d+)m(\d+)$/);
+    if(!m) return;
+    const week = parseInt(m[1],10);
+    const row = SCHEDULE.find(r=>r.type==="league" && r.week===week);
+    const dateLabel = row ? row.label : `Week ${week}`;
+    const homeTeam = teams[res.homeNum-1], awayTeam = teams[res.awayNum-1];
+    function addSide(players, team, opponent, isHome){
+      (players||[]).forEach(p=>{
+        if(!p.name) return;
+        const nameKey = normalizeName(p.name);
+        if(nameKey === "team total") return; // placeholder from an unreadable sheet, not a real player
+        const idxKey = playerKey(p.name, team);
+        // A player only ever plays for one team, so the same name recorded for a
+        // different team is presumed to be a different person, not merged with this one.
+        if(!index[idxKey]) index[idxKey] = { name:p.name, team, appearances:[] };
+        index[idxKey].appearances.push({ date:dateLabel, team, opponent, pins:p.pins, isHome });
+      });
+    }
+    addSide(res.homePlayers, homeTeam, awayTeam, true);
+    addSide(res.awayPlayers, awayTeam, homeTeam, false);
+  });
+  return index;
+}
+
+function playerStats(entry){
+  const games = entry.appearances.length;
+  const total = entry.appearances.reduce((s,a)=>s+a.pins,0);
+  const highest = Math.max(...entry.appearances.map(a=>a.pins));
+  const lowest = Math.min(...entry.appearances.map(a=>a.pins));
+  const avg = games ? total/games : 0;
+  return { name:entry.name, team:entry.team, games, total, highest, lowest, avg };
+}
+
+function viewPlayer(divIdx, encodedName, encodedTeam){
+  state.selectedPlayer = decodeURIComponent(encodedName);
+  state.selectedPlayerTeam = decodeURIComponent(encodedTeam);
+  state.selectedPlayerDiv = divIdx;
+  render();
+}
+function backToPlayerList(){
+  state.selectedPlayer = null;
+  state.selectedPlayerTeam = null;
+  state.selectedPlayerDiv = null;
+  render();
+}
+
+function buildPlayerProfile(entry, divIdx){
+  const stats = playerStats(entry);
+  const wrap=document.createElement("div");
+
+  const back=document.createElement("button");
+  back.className="linklike";
+  back.style.marginBottom="10px";
+  back.textContent="← Back to player averages";
+  back.onclick=backToPlayerList;
+  wrap.appendChild(back);
+
+  const header=document.createElement("div");
+  header.className="settings-block";
+  header.innerHTML = `<h3>${stats.name}</h3>
+    <p class="note">Plays for ${stats.team ? teamLinkByName(divIdx, stats.team) : "—"} — ${DIVISION_LABELS[divIdx]}</p>
+    <div class="stat-row">
+      <div class="stat-block"><strong>${stats.games}</strong><span>Games</span></div>
+      <div class="stat-block"><strong>${stats.total}</strong><span>Total pins</span></div>
+      <div class="stat-block"><strong>${stats.avg.toFixed(1)}</strong><span>Average</span></div>
+      <div class="stat-block"><strong>${stats.highest}</strong><span>Highest</span></div>
+      <div class="stat-block"><strong>${stats.lowest}</strong><span>Lowest</span></div>
+    </div>`;
+  wrap.appendChild(header);
+
+  const tbl=document.createElement("table");
+  tbl.className="league-table";
+  tbl.innerHTML = `<thead><tr><th>Date</th><th>Team</th><th>Opponent</th><th>Pins</th></tr></thead>
+    <tbody>${entry.appearances.slice().reverse().map(a=>`<tr>
+      <td>${a.date}</td><td class="name">${teamLinkByName(divIdx, a.team)}</td><td class="name">${teamLinkByName(divIdx, a.opponent)}</td><td class="num pts">${a.pins}</td>
+    </tr>`).join("")}</tbody>`;
+  wrap.appendChild(tbl);
+  return wrap;
+}
+
+function computePlayerRows(divIdx){
+  const index = buildPlayerIndex(divIdx);
+  const rows = Object.values(index).map(playerStats);
+  return sortPlayerRows(rows);
+}
+
+function sortPlayerRows(rows){
+  const {key, dir} = state.playerSort;
+  const mult = dir==="asc" ? 1 : -1;
+  return rows.slice().sort((a,b)=>{
+    const av=a[key], bv=b[key];
+    let c;
+    if(typeof av === "string") c = av.localeCompare(bv);
+    else c = av - bv;
+    return c!==0 ? mult*c : a.name.localeCompare(b.name);
+  });
+}
+
+function setPlayerSort(key){
+  if(state.playerSort.key===key){
+    state.playerSort.dir = state.playerSort.dir==="desc" ? "asc" : "desc";
+  } else {
+    state.playerSort = { key, dir: (key==="name"||key==="team") ? "asc" : "desc" };
+  }
+  const slot=document.getElementById("players-results-slot");
+  if(slot) slot.innerHTML = renderPlayersResultsHTML();
+}
+
+function sortArrow(key){
+  if(state.playerSort.key!==key) return "";
+  return state.playerSort.dir==="desc" ? " ▾" : " ▴";
+}
+
+function playersTableHeadHTML(){
+  return `<tr>
+      <th>#</th>
+      <th class="sortable" onclick="setPlayerSort('name')">Player${sortArrow('name')}</th>
+      <th class="sortable" onclick="setPlayerSort('team')">Team${sortArrow('team')}</th>
+      <th class="sortable" onclick="setPlayerSort('games')">P${sortArrow('games')}</th>
+      <th class="sortable" onclick="setPlayerSort('total')">Total${sortArrow('total')}</th>
+      <th class="sortable" onclick="setPlayerSort('avg')">Avg${sortArrow('avg')}</th>
+      <th class="sortable" onclick="setPlayerSort('highest')">High${sortArrow('highest')}</th>
+    </tr>`;
+}
+
+function buildPlayersTableHTML(shown, divIdx){
+  if(shown.length===0) return "";
+  return `<table class="league-table">
+      <thead>${playersTableHeadHTML()}</thead>
+      <tbody>${shown.map((r,i)=>`<tr class="playerrow" onclick="viewPlayer(${divIdx},'${encodeURIComponent(r.name)}','${encodeURIComponent(r.team)}')">
+          <td class="num">${i+1}</td>
+          <td class="name">${r.name}</td>
+          <td>${teamLinkByName(divIdx, r.team)}</td>
+          <td class="num">${r.games}</td>
+          <td class="num">${r.total}</td>
+          <td class="num pts">${r.avg.toFixed(1)}</td>
+          <td class="num">${r.highest}</td>
+        </tr>`).join("")}</tbody>
+    </table>`;
+}
+
+function renderPlayersResultsHTML(){
+  const query = (state.playerSearch||"").trim();
+  const q = query.toLowerCase();
+
+  if(state.playersDiv === "all"){
+    const sections = [];
+    [0,1,2].forEach(d=>{
+      const rows = computePlayerRows(d);
+      if(rows.length===0) return;
+      const shown = query ? rows.filter(r=>r.name.toLowerCase().includes(q)||r.team.toLowerCase().includes(q)) : rows.slice(0,10);
+      if(shown.length===0) return;
+      sections.push(`<h3 class="division-heading">${DIVISION_LABELS[d]}</h3>` + buildPlayersTableHTML(shown, d));
+    });
+    if(sections.length===0){
+      return query
+        ? `<p class="note">No players or teams match "${query}".</p>`
+        : `<p class="note">No individual scores recorded yet.</p>`;
+    }
+    const noteText = query
+      ? `Showing matches for "${query}" across all divisions. Tap a player to see their match-by-match scores.`
+      : `Top 10 in each division — search above to find yourself or your team, pick a division for the full list, or tap a column heading to sort.`;
+    return sections.join("") + `<p class="note">${noteText}</p>`;
+  }
+
+  const divIdx = state.playersDiv;
+  const rows = computePlayerRows(divIdx);
+  if(rows.length===0){
+    return `<p class="note">No individual scores recorded yet for this division.</p>`;
+  }
+  const shown = query ? rows.filter(r=>r.name.toLowerCase().includes(q)||r.team.toLowerCase().includes(q)) : rows.slice(0,10);
+  const tableHTML = buildPlayersTableHTML(shown, divIdx);
+  let noteText;
+  if(query){
+    noteText = shown.length
+      ? `${shown.length} match${shown.length===1?'':'es'} for "${query}". Tap a player to see their match-by-match scores.`
+      : `No players or teams match "${query}".`;
+  } else {
+    noteText = `Top 10 — search above to find yourself or your team, or tap a column heading to sort.`;
+  }
+  return tableHTML + `<p class="note">${noteText}</p>`;
+}
+
+function onPlayerSearchInput(value){
+  state.playerSearch = value;
+  const slot=document.getElementById("players-results-slot");
+  if(slot) slot.innerHTML = renderPlayersResultsHTML();
+}
+
+function computeHonours(){
+  const all = [];
+  for(let d=0; d<3; d++){
+    const teams = state.teams[d];
+    Object.entries(state.results[d]).forEach(([key,res])=>{
+      const wm = key.match(/^w(\d+)m(\d+)$/);
+      const week = parseInt(wm[1],10);
+      const row = SCHEDULE.find(r=>r.type==="league" && r.week===week);
+      const dateLabel = row ? row.label : `Week ${week}`;
+      const homeTeam = teams[res.homeNum-1], awayTeam = teams[res.awayNum-1];
+      (res.homePlayers||[]).forEach(p=>all.push({ ...p, team:homeTeam, div:d, date:dateLabel }));
+      (res.awayPlayers||[]).forEach(p=>all.push({ ...p, team:awayTeam, div:d, date:dateLabel }));
+    });
+  }
+  const real = all.filter(p=>p.name && p.name!=="Team total" && !p.name.startsWith("Unclear player"));
+  const twentySevens = real.filter(p=>p.twentySeven).sort((a,b)=> a.date.localeCompare(b.date));
+  const topScores = real.slice().sort((a,b)=> b.pins-a.pins).slice(0,3);
+  return { twentySevens, topScores };
+}
+
+function buildHonoursBoardHTML(){
+  const { twentySevens, topScores } = computeHonours();
+  let html = `<div class="settings-block"><h3>Honours Board</h3>`;
+
+  html += `<p class="note" style="margin-top:0;"><strong>27s</strong></p>`;
+  if(twentySevens.length){
+    html += twentySevens.map(p=>
+      `<div class="honours-row"><span class="name">${p.name}</span><span>${teamLinkByName(p.div,p.team)}</span><span>${p.date}</span></div>`
+    ).join("");
+  } else {
+    html += `<p class="note">None recorded yet.</p>`;
+  }
+
+  html += `<p class="note" style="margin:14px 0 0;"><strong>Top individual scores</strong></p>`;
+  if(topScores.length){
+    html += topScores.map((p,i)=>
+      `<div class="honours-row"><span class="name">${i+1}. ${p.name}</span><span>${teamLinkByName(p.div,p.team)}</span><span>${p.date}</span><span class="num pts">${p.pins}</span></div>`
+    ).join("");
+  } else {
+    html += `<p class="note">None recorded yet.</p>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function computeTopAwayAverages(limit){
+  const all = [];
+  for(let d=0; d<3; d++){
+    const index = buildPlayerIndex(d);
+    Object.values(index).forEach(entry=>{
+      const awayApps = entry.appearances.filter(a=>a.isHome===false);
+      const games = awayApps.length;
+      if(games===0) return;
+      const total = awayApps.reduce((s,a)=>s+a.pins,0);
+      all.push({ name:entry.name, team:entry.team, div:d, games, total, avg: total/games });
+    });
+  }
+  all.sort((a,b)=> b.avg-a.avg || b.total-a.total || a.name.localeCompare(b.name));
+  return all.slice(0, limit);
+}
+
+function buildTopAwayAveragesHTML(){
+  const rows = computeTopAwayAverages(10);
+  if(rows.length===0) return "";
+  let html = `<div class="settings-block"><h3>Top 10 Away Averages</h3>
+    <table class="league-table"><thead><tr><th>#</th><th>Player</th><th>Team</th><th>P</th><th>Avg</th></tr></thead>
+      <tbody>${rows.map((r,i)=>`<tr class="playerrow" onclick="viewPlayer(${r.div},'${encodeURIComponent(r.name)}','${encodeURIComponent(r.team)}')">
+          <td class="num">${i+1}</td>
+          <td class="name">${r.name}</td>
+          <td>${teamLinkByName(r.div, r.team)}</td>
+          <td class="num">${r.games}</td>
+          <td class="num pts">${r.avg.toFixed(1)}</td>
+        </tr>`).join("")}</tbody></table>
+    <p class="note">Average pins in away games only, ranked across all three divisions.</p>
+  </div>`;
+  return html;
+}
+
+function buildPlayersView(){
+  const wrap=document.createElement("div");
+  wrap.innerHTML = playersDivSwitchHTML();
+
+  if(state.selectedPlayer && state.selectedPlayerDiv!==null){
+    const index = buildPlayerIndex(state.selectedPlayerDiv);
+    const entry = index[playerKey(state.selectedPlayer, state.selectedPlayerTeam)];
+    if(entry){
+      wrap.appendChild(buildPlayerProfile(entry, state.selectedPlayerDiv));
+      return wrap;
+    }
+    state.selectedPlayer = null;
+    state.selectedPlayerTeam = null;
+    state.selectedPlayerDiv = null;
+  }
+
+  const honoursSlot=document.createElement("div");
+  honoursSlot.innerHTML = buildHonoursBoardHTML();
+  wrap.appendChild(honoursSlot);
+
+  const awaySlot=document.createElement("div");
+  awaySlot.innerHTML = buildTopAwayAveragesHTML();
+  wrap.appendChild(awaySlot);
+
+  const searchBox=document.createElement("input");
+  searchBox.type="text";
+  searchBox.className="search-input";
+  searchBox.id="player-search";
+  searchBox.placeholder="Search your name or team…";
+  searchBox.value = state.playerSearch || "";
+  searchBox.oninput = (e)=> onPlayerSearchInput(e.target.value);
+  wrap.appendChild(searchBox);
+
+  const resultsSlot=document.createElement("div");
+  resultsSlot.id="players-results-slot";
+  resultsSlot.innerHTML = renderPlayersResultsHTML();
+  wrap.appendChild(resultsSlot);
+
+  return wrap;
+}
+
+/* ---------- alley averages ---------- */
+function venueKey(divIdx, teamNum){
+  const info = (TEAM_INFO[divIdx]||[])[teamNum-1];
+  if(!info || !info.venue) return null;
+  return info.alley ? `${info.venue} — ${info.alley}` : info.venue;
+}
+
+function computeAlleyStats(){
+  const stats = {}; // venueKey -> { totalPins, games, matches, teams:Set("div:num"), highTeam, highPlayer }
+  for(let d=0; d<3; d++){
+    const teams = state.teams[d];
+    Object.entries(state.results[d]).forEach(([key,res])=>{
+      const vKey = venueKey(d, res.homeNum);
+      if(!vKey) return;
+      if(!stats[vKey]) stats[vKey] = { totalPins:0, games:0, matches:0, teams:new Set(), highTeam:null, highPlayer:null };
+      const s = stats[vKey];
+      s.teams.add(`${d}:${res.homeNum}`);
+      s.matches += 1;
+
+      const wm = key.match(/^w(\d+)m(\d+)$/);
+      const week = parseInt(wm[1],10);
+      const row = SCHEDULE.find(r=>r.type==="league" && r.week===week);
+      const dateLabel = row ? row.label : `Week ${week}`;
+
+      [[res.homeTotal,res.homeNum],[res.awayTotal,res.awayNum]].forEach(([score,teamNum])=>{
+        if(!s.highTeam || score > s.highTeam.score){
+          s.highTeam = { score, teamDiv:d, teamNum, date:dateLabel };
+        }
+      });
+
+      function checkPlayer(p, teamNum){
+        if(!p.name || p.name==="Team total" || p.name.startsWith("Unclear player")) return;
+        s.totalPins += p.pins;
+        s.games += 1;
+        if(!s.highPlayer || p.pins > s.highPlayer.pins){
+          s.highPlayer = { pins:p.pins, name:p.name, teamDiv:d, teamNum, date:dateLabel };
+        }
+      }
+      (res.homePlayers||[]).forEach(p=>checkPlayer(p, res.homeNum));
+      (res.awayPlayers||[]).forEach(p=>checkPlayer(p, res.awayNum));
+    });
+  }
+  return stats;
+}
+
+function buildAlleysView(){
+  const wrap=document.createElement("div");
+  const stats = computeAlleyStats();
+  const rows = Object.entries(stats).map(([venue, s])=>({
+    venue,
+    matches: s.matches,
+    games: s.games,
+    avg: s.games ? s.totalPins/s.games : 0,
+    teamLinks: [...s.teams].map(k=>{ const [d,num]=k.split(":").map(Number); return teamLinkByNum(d,num); }),
+    highTeam: s.highTeam,
+    highPlayer: s.highPlayer
+  }));
+
+  if(rows.length===0){
+    const note=document.createElement("p");
+    note.className="note";
+    note.textContent="No results recorded yet.";
+    wrap.appendChild(note);
+    return wrap;
+  }
+
+  rows.sort((a,b)=> b.avg - a.avg);
+  rows.forEach(r=>{
+    const card=document.createElement("div");
+    card.className="settings-block";
+    const highTeamName = r.highTeam ? teamLinkByNum(r.highTeam.teamDiv, r.highTeam.teamNum) : null;
+    const highPlayerTeamName = r.highPlayer ? teamLinkByNum(r.highPlayer.teamDiv, r.highPlayer.teamNum) : null;
+    let detail = "";
+    if(highTeamName) detail += `Highest team score: ${r.highTeam.score} by ${highTeamName} (${r.highTeam.date})`;
+    if(highPlayerTeamName){
+      if(detail) detail += " · ";
+      detail += `Highest individual: ${r.highPlayer.pins} by ${r.highPlayer.name}, ${highPlayerTeamName} (${r.highPlayer.date})`;
+    }
+    card.innerHTML = `<h3>${r.venue}</h3>
+      <p class="note">Teams: ${r.teamLinks.join(", ")}</p>
+      <div class="stat-row">
+        <div class="stat-block"><strong>${r.matches}</strong><span>Matches</span></div>
+        <div class="stat-block"><strong>${r.avg.toFixed(1)}</strong><span>Avg/player</span></div>
+        <div class="stat-block"><strong>${r.highTeam?r.highTeam.score:"—"}</strong><span>High team</span></div>
+        <div class="stat-block"><strong>${r.highPlayer?r.highPlayer.pins:"—"}</strong><span>High player</span></div>
+      </div>
+      ${detail?`<p class="note">${detail}</p>`:""}`;
+    wrap.appendChild(card);
+  });
+  const note=document.createElement("p");
+  note.className="note";
+  note.textContent="Ranked by average pins per individual player score, across all divisions and both home and away players.";
+  wrap.appendChild(note);
+  return wrap;
+}
+
+/* ---------- main render ---------- */
+function render(){
+  renderNav();
+  const main=document.getElementById("app");
+  main.innerHTML="";
+  if(state.selectedTeam){
+    main.appendChild(buildTeamProfile(state.selectedTeam.div, state.selectedTeam.num));
+    return;
+  }
+  if(state.tab==="fixtures") main.appendChild(buildFixturesView());
+  else if(state.tab==="table") main.appendChild(buildTableView());
+  else if(state.tab==="players") main.appendChild(buildPlayersView());
+  else main.appendChild(buildAlleysView());
+}
+
+/* ---------- boot ---------- */
+(function boot(){
+  loadInitialState();
+  render();
+  // scroll current week into view on first load
+  setTimeout(()=>{
+    const el=document.querySelector(".is-now");
+    if(el) el.scrollIntoView({behavior:"smooth",block:"center"});
+  },150);
+})();
+</script>
+</body>
+</html>

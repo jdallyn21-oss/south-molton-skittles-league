@@ -4,6 +4,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { acceptCard, createStore, pruneBellHotelCards } = require('./lib/league-cards');
+const { fetchLeagueCards } = require('./lib/supabase-league');
 
 const PORT = Number(process.env.PORT) || 47331;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -62,7 +63,16 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/cards') {
-    send(res, 200, { ok: true, cards: store.list() });
+    fetchLeagueCards().then(remote => {
+      const fromSupabase = remote.source === 'supabase';
+      send(res, 200, {
+        ok: true,
+        cards: fromSupabase ? remote.cards : store.list(),
+        source: fromSupabase ? 'supabase' : 'local'
+      });
+    }).catch(() => {
+      send(res, 200, { ok: true, cards: store.list(), source: 'local' });
+    });
     return;
   }
 

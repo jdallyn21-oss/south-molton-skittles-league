@@ -12,7 +12,9 @@ node server.js
 
 The site and the API listen on port 47331. Open [http://127.0.0.1:47331](http://127.0.0.1:47331).
 
-Cards are stored in `data/league-cards.json` (not committed). Set `LEAGUE_DATA` to a durable file path if the host’s disk is wiped on restart. No API token is required. There is no hosted database.
+`GET /api/cards` reads league fixtures from Supabase `skittles_league_cards()` when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in the environment (they already are on the Vercel project). Those values are not stored in git. Until Joe runs `supabase/migrations/20260929120000_skittles_league_cards.sql` in the Supabase SQL editor, that read is empty and the page keeps the results already in the HTML.
+
+Locally, with those variables unset, cards stay in `data/league-cards.json` (not committed). Set `LEAGUE_DATA` to a durable file path if the host’s disk is wiped on restart. No API token is required for the local file.
 
 ## League fixture API
 
@@ -20,7 +22,7 @@ The scoring app POSTs at the end of each pair of rubs. Only a scheduled league f
 
 `POST /api/cards`
 
-`GET /api/cards` returns every stored fixture. `GET /api/cards/{id}` returns one. The id is `{divisionIndex}-{week}-{matchIndex}`, for example `0-3-0`.
+`GET /api/cards` returns league fixtures from Supabase when that read is available, otherwise the local file. `GET /api/cards/{id}` returns one local card. The id is `{divisionIndex}-{week}-{matchIndex}`, for example `0-3-0`.
 
 League fixture cards in the scorer have no `quick` field. `format` is `league`, or it can be left off. Each player is a slot from the card: `name`, `boxes` (6 scores, `null` if not bowled yet), `spare`, and `fine`. South Molton plays double rubs, so the six boxes finish as three pairs:
 

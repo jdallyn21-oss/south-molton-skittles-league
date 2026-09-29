@@ -1304,7 +1304,7 @@ function computeTopAwayAverages(limit){
     Object.values(index).forEach(entry=>{
       const awayApps = entry.appearances.filter(a=>a.isHome===false);
       const games = awayApps.length;
-      if(games===0) return;
+      if(games < 2) return;
       const total = awayApps.reduce((s,a)=>s+a.pins,0);
       all.push({ name:entry.name, team:entry.team, div:d, games, total, avg: total/games });
     });
@@ -1325,7 +1325,7 @@ function buildTopAwayAveragesHTML(){
           <td class="num">${r.games}</td>
           <td class="num pts">${r.avg.toFixed(1)}</td>
         </tr>`).join("")}</tbody></table>
-    <p class="note">Average pins in away games only, ranked across all three divisions.</p>
+    <p class="note">Average pins in away games only. At least two away games. Ranked across all three divisions.</p>
   </div>`;
   return html;
 }

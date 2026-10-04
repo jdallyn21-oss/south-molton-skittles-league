@@ -1161,7 +1161,7 @@ function buildPlayerProfile(entry, divIdx){
 
 function computePlayerRows(divIdx){
   const index = buildPlayerIndex(divIdx);
-  const rows = Object.values(index).map(playerStats);
+  const rows = Object.values(index).map(playerStats).filter(r => r.games >= 2);
   return sortPlayerRows(rows);
 }
 
@@ -1240,7 +1240,7 @@ function renderPlayersResultsHTML(){
     }
     const noteText = query
       ? `Showing matches for "${query}" across all divisions. Tap a player to see their match-by-match scores.`
-      : `Top 10 in each division — search above to find yourself or your team, pick a division for the full list, or tap a column heading to sort.`;
+      : `Top 10 in each division, at least two games. Search above to find yourself or your team, pick a division for the full list, or tap a column heading to sort.`;
     return sections.join("") + `<p class="note">${noteText}</p>`;
   }
 
@@ -1257,7 +1257,7 @@ function renderPlayersResultsHTML(){
       ? `${shown.length} match${shown.length===1?'':'es'} for "${query}". Tap a player to see their match-by-match scores.`
       : `No players or teams match "${query}".`;
   } else {
-    noteText = `Top 10 — search above to find yourself or your team, or tap a column heading to sort.`;
+    noteText = `Top 10, at least two games. Search above to find yourself or your team, or tap a column heading to sort.`;
   }
   return tableHTML + `<p class="note">${noteText}</p>`;
 }

@@ -553,8 +553,8 @@ function buildMatchDetailsHTML(divIdx, m, res){
   const homeName = teams[m[0]-1], awayName = teams[m[1]-1];
   const disc = matchDiscrepancy(res);
   let html = `<div class="match-detail"><div class="match-detail-cols">
-      <div class="match-detail-col"><h4>${homeName}</h4>${(res.homePlayers||[]).map(p=>`<div class="match-detail-row"><span>${p.name}</span><span>${p.pins}</span></div>`).join("")}</div>
-      <div class="match-detail-col"><h4>${awayName}</h4>${(res.awayPlayers||[]).map(p=>`<div class="match-detail-row"><span>${p.name}</span><span>${p.pins}</span></div>`).join("")}</div>
+      <div class="match-detail-col"><h4>${homeName}</h4>${(res.homePlayers||[]).map(p=>`<div class="match-detail-row"><span>${canonicalPlayerName(p.name, homeName)}</span><span>${p.pins}</span></div>`).join("")}</div>
+      <div class="match-detail-col"><h4>${awayName}</h4>${(res.awayPlayers||[]).map(p=>`<div class="match-detail-row"><span>${canonicalPlayerName(p.name, awayName)}</span><span>${p.pins}</span></div>`).join("")}</div>
     </div>`;
   if(disc.home || disc.away){
     const bits = [];
@@ -1056,6 +1056,19 @@ function buildTableView(){
 /* ---------- individual player averages & profiles ---------- */
 function normalizeName(n){ return n.trim().replace(/\s+/g," ").toLowerCase(); }
 
+// Scoresheet spellings Joe has confirmed are the same person. Keyed by team so
+// the same letters on another team stay a different player.
+const PLAYER_ALIASES = {
+  "Shafters": { "p. grant": "P. Crane", "p grant": "P. Crane" }
+};
+
+function canonicalPlayerName(name, team){
+  const trimmed = String(name||"").trim().replace(/\s+/g," ");
+  const aliases = PLAYER_ALIASES[team];
+  if(!aliases) return trimmed;
+  return aliases[normalizeName(trimmed)] || trimmed;
+}
+
 function playerKey(name, team){ return normalizeName(name) + "|" + team; }
 
 function buildPlayerIndex(divIdx){
@@ -1071,12 +1084,13 @@ function buildPlayerIndex(divIdx){
     function addSide(players, team, opponent, isHome){
       (players||[]).forEach(p=>{
         if(!p.name) return;
-        const nameKey = normalizeName(p.name);
+        const name = canonicalPlayerName(p.name, team);
+        const nameKey = normalizeName(name);
         if(nameKey === "team total") return; // placeholder from an unreadable sheet, not a real player
-        const idxKey = playerKey(p.name, team);
+        const idxKey = playerKey(name, team);
         // A player only ever plays for one team, so the same name recorded for a
         // different team is presumed to be a different person, not merged with this one.
-        if(!index[idxKey]) index[idxKey] = { name:p.name, team, appearances:[] };
+        if(!index[idxKey]) index[idxKey] = { name, team, appearances:[] };
         index[idxKey].appearances.push({ date:dateLabel, team, opponent, pins:p.pins, isHome });
       });
     }
@@ -1261,8 +1275,8 @@ function computeHonours(){
       const row = SCHEDULE.find(r=>r.type==="league" && r.week===week);
       const dateLabel = row ? row.label : `Week ${week}`;
       const homeTeam = teams[res.homeNum-1], awayTeam = teams[res.awayNum-1];
-      (res.homePlayers||[]).forEach(p=>all.push({ ...p, team:homeTeam, div:d, date:dateLabel }));
-      (res.awayPlayers||[]).forEach(p=>all.push({ ...p, team:awayTeam, div:d, date:dateLabel }));
+      (res.homePlayers||[]).forEach(p=>all.push({ ...p, name:canonicalPlayerName(p.name, homeTeam), team:homeTeam, div:d, date:dateLabel }));
+      (res.awayPlayers||[]).forEach(p=>all.push({ ...p, name:canonicalPlayerName(p.name, awayTeam), team:awayTeam, div:d, date:dateLabel }));
     });
   }
   const real = all.filter(p=>p.name && p.name!=="Team total" && !p.name.startsWith("Unclear player"));
@@ -1402,11 +1416,12 @@ function computeAlleyStats(){
       });
 
       function checkPlayer(p, teamNum){
-        if(!p.name || p.name==="Team total" || p.name.startsWith("Unclear player")) return;
+        const name = canonicalPlayerName(p.name, teams[teamNum-1]);
+        if(!name || name==="Team total" || name.startsWith("Unclear player")) return;
         s.totalPins += p.pins;
         s.games += 1;
         if(!s.highPlayer || p.pins > s.highPlayer.pins){
-          s.highPlayer = { pins:p.pins, name:p.name, teamDiv:d, teamNum, date:dateLabel };
+          s.highPlayer = { pins:p.pins, name, teamDiv:d, teamNum, date:dateLabel };
         }
       }
       (res.homePlayers||[]).forEach(p=>checkPlayer(p, res.homeNum));

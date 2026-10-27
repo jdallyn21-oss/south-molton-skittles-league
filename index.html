@@ -1120,10 +1120,32 @@ function buildTableView(){
 }
 
 /* ---------- individual player averages & profiles ---------- */
-function normalizeName(n){ return n.trim().replace(/\s+/g," ").toLowerCase(); }
+function normalizeName(n){ return String(n||"").trim().replace(/\s+/g," ").toLowerCase(); }
+
+// A token of single letters, with or without full stops: "P", "P.", "A.W", "A.W.".
+function isInitialToken(token){
+  return /^[A-Za-z](?:\.[A-Za-z])*\.?$/.test(token);
+}
+
+// "P. Crane" and "P Crane" are the same person. Initials compare without stops.
+function nameIdentity(name){
+  return String(name||"").trim().replace(/\s+/g," ").split(" ").map(token=>{
+    if(isInitialToken(token)) return token.replace(/\./g,"").toLowerCase().split("").join(" ");
+    return token.toLowerCase();
+  }).join(" ").replace(/\s+/g," ");
+}
+
+// Display prefers "A. Smith" and "A.W. Tapp". Surname spelling is left as written.
+function withDottedInitials(name){
+  return String(name||"").trim().replace(/\s+/g," ").split(" ").map(token=>{
+    if(!isInitialToken(token)) return token;
+    return token.replace(/\./g,"").toUpperCase().split("").join(".") + ".";
+  }).join(" ");
+}
 
 // Scoresheet spellings Joe has confirmed are the same person. Keyed by team so
-// the same letters on another team stay a different player.
+// the same letters on another team stay a different player. An alias chooses
+// the display name; otherwise initials are shown with a full stop.
 const PLAYER_ALIASES = {
   "Shafters": { "p. grant": "P. Crane", "p grant": "P. Crane" }
 };
@@ -1131,11 +1153,21 @@ const PLAYER_ALIASES = {
 function canonicalPlayerName(name, team){
   const trimmed = String(name||"").trim().replace(/\s+/g," ");
   const aliases = PLAYER_ALIASES[team];
-  if(!aliases) return trimmed;
-  return aliases[normalizeName(trimmed)] || trimmed;
+  if(aliases){
+    const hit = aliases[normalizeName(trimmed)];
+    if(hit) return hit;
+  }
+  return withDottedInitials(trimmed);
 }
 
-function playerKey(name, team){ return normalizeName(name) + "|" + team; }
+function playerKey(name, team){ return nameIdentity(name) + "|" + team; }
+
+function matchesPlayerQuery(name, team, query){
+  const q = String(query||"").trim().toLowerCase();
+  if(!q) return true;
+  if(String(name||"").toLowerCase().includes(q) || String(team||"").toLowerCase().includes(q)) return true;
+  return nameIdentity(name).includes(nameIdentity(query));
+}
 
 function buildPlayerIndex(divIdx){
   const teams = state.teams[divIdx];
@@ -1285,14 +1317,13 @@ function buildPlayersTableHTML(shown, divIdx){
 
 function renderPlayersResultsHTML(){
   const query = (state.playerSearch||"").trim();
-  const q = query.toLowerCase();
 
   if(state.playersDiv === "all"){
     const sections = [];
     [0,1,2].forEach(d=>{
       const rows = computePlayerRows(d);
       if(rows.length===0) return;
-      const shown = query ? rows.filter(r=>r.name.toLowerCase().includes(q)||r.team.toLowerCase().includes(q)) : rows.slice(0,10);
+      const shown = query ? rows.filter(r=>matchesPlayerQuery(r.name, r.team, query)) : rows.slice(0,10);
       if(shown.length===0) return;
       sections.push(`<h3 class="division-heading">${DIVISION_LABELS[d]}</h3>` + buildPlayersTableHTML(shown, d));
     });
@@ -1312,7 +1343,7 @@ function renderPlayersResultsHTML(){
   if(rows.length===0){
     return `<p class="note">No individual scores recorded yet for this division.</p>`;
   }
-  const shown = query ? rows.filter(r=>r.name.toLowerCase().includes(q)||r.team.toLowerCase().includes(q)) : rows.slice(0,10);
+  const shown = query ? rows.filter(r=>matchesPlayerQuery(r.name, r.team, query)) : rows.slice(0,10);
   const tableHTML = buildPlayersTableHTML(shown, divIdx);
   let noteText;
   if(query){
@@ -1573,16 +1604,24 @@ function applySyncedCard(card){
   const pairing = scheduled && scheduled.matches[card.matchIndex];
   if(pairing && isBellHotelFixture(div, pairing[0], pairing[1])) return false;
   const key = "w" + card.week + "m" + card.matchIndex;
+  const prev = state.results[div][key];
+  // Synced cards only carry name and pins. A 27 is one rub, stored on the
+  // published result as twentySeven, so keep that flag for the same player.
+  function syncedPlayer(p, previousPlayers){
+    const nextPlayer = { name: p.name, pins: p.pins };
+    const earlier = (previousPlayers || []).find(old => old && nameIdentity(old.name) === nameIdentity(p.name));
+    if(p.twentySeven || (earlier && earlier.twentySeven)) nextPlayer.twentySeven = true;
+    return nextPlayer;
+  }
   const next = {
     homeNum: card.homeNum,
     awayNum: card.awayNum,
-    homePlayers: (card.homePlayers || []).map(p => ({ name: p.name, pins: p.pins })),
-    awayPlayers: (card.awayPlayers || []).map(p => ({ name: p.name, pins: p.pins })),
+    homePlayers: (card.homePlayers || []).map(p => syncedPlayer(p, prev && prev.homePlayers)),
+    awayPlayers: (card.awayPlayers || []).map(p => syncedPlayer(p, prev && prev.awayPlayers)),
     homeTotal: card.homeTotal,
     awayTotal: card.awayTotal,
     savedAt: card.updatedAt || card.savedAt || card.receivedAt
   };
-  const prev = state.results[div][key];
   if(JSON.stringify(prev) === JSON.stringify(next)) return false;
   state.results[div][key] = next;
   return true;

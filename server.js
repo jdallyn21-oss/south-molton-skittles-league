@@ -63,6 +63,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/cards') {
+    // Prefer live Supabase scored league cards; fall back to local file / baked HTML.
     fetchLeagueCards().then(remote => {
       const fromSupabase = remote.source === 'supabase';
       send(res, 200, {

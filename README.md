@@ -12,7 +12,7 @@ node server.js
 
 The site and the API listen on port 47331. Open [http://127.0.0.1:47331](http://127.0.0.1:47331).
 
-`GET /api/cards` reads league fixtures from Supabase `skittles_league_cards()` when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set in the environment (they already are on the Vercel project). Those values are not stored in git. Until Joe runs `supabase/migrations/20260929120000_skittles_league_cards.sql` in the Supabase SQL editor, that read is empty and the page keeps the results already in the HTML.
+`GET /api/cards` reads scored league fixtures from Supabase `skittles_league_cards()` when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are set (they already are on the Vercel project). Those values are not stored in git. The page prefers those cards for tables, results, and averages. Quick / try-out cards (`quick: true`, or ids starting `qm-` / `quick-` / `tg-` / `tryout-`) are ignored. Baked CSV/HTML results stay as the fallback for any fixture Supabase does not have yet.
 
 Locally, with those variables unset, cards stay in `data/league-cards.json` (not committed). Set `LEAGUE_DATA` to a durable file path if the host’s disk is wiped on restart. No API token is required for the local file.
 

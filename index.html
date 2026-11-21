@@ -1677,30 +1677,72 @@ function render(){
   else main.appendChild(buildAlleysView());
 }
 
-/* ---------- scores pushed by the scorer after each pair of rubs ---------- */
+/* ---------- scores from scored league cards (Supabase via GET /api/cards) ---------- */
+// Prefer live cards for tables / results / averages. Baked CSV/HTML results stay
+// until a scored league card arrives for that fixture. Quick / try-out cards never apply.
+function isQuickOrTryoutCard(card){
+  if(!card || typeof card !== "object") return true;
+  if(card.quick === true || card.quick === 1 || card.quick === "true") return true;
+  if(card.tryout === true || card.tryout === 1 || card.tryout === "true") return true;
+  const id = String(card.id || card.key || card.cardKey || "");
+  if(/^(qm-|quick-|tg-|tryout-)/i.test(id)) return true;
+  return false;
+}
+function leagueCardCoords(card){
+  let divIndex = Number.isInteger(card.divIndex) ? card.divIndex
+    : (Number.isInteger(card.div) ? card.div : null);
+  let week = Number.isInteger(card.week) ? card.week : null;
+  let matchIndex = Number.isInteger(card.matchIndex) ? card.matchIndex
+    : (Number.isInteger(card.mi) ? card.mi : null);
+  const id = String(card.id || card.key || card.cardKey || "");
+  const m = id.match(/^([0-2])-(\d+)-(\d+)$/);
+  if(m){
+    if(divIndex == null) divIndex = Number(m[1]);
+    if(week == null) week = Number(m[2]);
+    if(matchIndex == null) matchIndex = Number(m[3]);
+  }
+  const homeNum = Number.isInteger(card.homeNum) ? card.homeNum
+    : (Number.isInteger(card.home) ? card.home : null);
+  const awayNum = Number.isInteger(card.awayNum) ? card.awayNum
+    : (Number.isInteger(card.away) ? card.away : null);
+  return { divIndex, week, matchIndex, homeNum, awayNum };
+}
+function cardHasScoredTotals(card){
+  if(typeof card.homeTotal !== "number" || !Number.isFinite(card.homeTotal)) return false;
+  if(typeof card.awayTotal !== "number" || !Number.isFinite(card.awayTotal)) return false;
+  const players = [].concat(card.homePlayers || [], card.awayPlayers || []);
+  return players.some(p => p && typeof p.pins === "number" && Number.isFinite(p.pins));
+}
 function applySyncedCard(card){
-  if(!card || card.quick || (card.format && card.format !== "league")) return false;
-  const div = card.divIndex;
+  if(!card || isQuickOrTryoutCard(card)) return false;
+  if(card.format && card.format !== "league") return false;
+  if(!cardHasScoredTotals(card)) return false; // blank draft must not wipe a published result
+  const { divIndex: div, week, matchIndex, homeNum, awayNum } = leagueCardCoords(card);
   if(div == null || div < 0 || div > 2 || !state.results[div]) return false;
-  if(isBellHotelFixture(div, card.homeNum, card.awayNum)) return false;
-  const scheduled = SCHEDULE.find(r => r.type === "league" && r.week === card.week);
-  const pairing = scheduled && scheduled.matches[card.matchIndex];
+  if(week == null || matchIndex == null || homeNum == null || awayNum == null) return false;
+  if(isBellHotelFixture(div, homeNum, awayNum)) return false;
+  const scheduled = SCHEDULE.find(r => r.type === "league" && r.week === week);
+  const pairing = scheduled && scheduled.matches[matchIndex];
   if(pairing && isBellHotelFixture(div, pairing[0], pairing[1])) return false;
-  const key = "w" + card.week + "m" + card.matchIndex;
+  const key = "w" + week + "m" + matchIndex;
   const prev = state.results[div][key];
+  const homeTeam = teamNameAt(div, homeNum);
+  const awayTeam = teamNameAt(div, awayNum);
   // Synced cards only carry name and pins. A 27 is one rub, stored on the
   // published result as twentySeven, so keep that flag for the same player.
-  function syncedPlayer(p, previousPlayers){
-    const nextPlayer = { name: p.name, pins: p.pins };
-    const earlier = (previousPlayers || []).find(old => old && nameIdentity(old.name) === nameIdentity(p.name));
+  // Canonical names (PLAYER_ALIASES + dotted initials) keep merges stable.
+  function syncedPlayer(p, previousPlayers, team){
+    const name = canonicalPlayerName(p.name, team);
+    const nextPlayer = { name, pins: p.pins };
+    const earlier = (previousPlayers || []).find(old => old && nameIdentity(old.name) === nameIdentity(name));
     if(p.twentySeven || (earlier && earlier.twentySeven)) nextPlayer.twentySeven = true;
     return nextPlayer;
   }
   const next = {
-    homeNum: card.homeNum,
-    awayNum: card.awayNum,
-    homePlayers: (card.homePlayers || []).map(p => syncedPlayer(p, prev && prev.homePlayers)),
-    awayPlayers: (card.awayPlayers || []).map(p => syncedPlayer(p, prev && prev.awayPlayers)),
+    homeNum,
+    awayNum,
+    homePlayers: (card.homePlayers || []).map(p => syncedPlayer(p, prev && prev.homePlayers, homeTeam)),
+    awayPlayers: (card.awayPlayers || []).map(p => syncedPlayer(p, prev && prev.awayPlayers, awayTeam)),
     homeTotal: card.homeTotal,
     awayTotal: card.awayTotal,
     savedAt: card.updatedAt || card.savedAt || card.receivedAt
@@ -1714,6 +1756,7 @@ async function loadSyncedCards(){
     const res = await fetch("/api/cards", { cache: "no-store" });
     if(!res.ok) return;
     const data = await res.json();
+    // Prefer Supabase when available; empty/unavailable leaves baked HTML/CSV results.
     let changed = false;
     (data.cards || []).forEach(card => { if(applySyncedCard(card)) changed = true; });
     if(changed) render();

@@ -1878,6 +1878,10 @@ async function adminApi(action, payload){
     return { ok: false, error: "Could not reach the admin API." };
   }
 }
+function hasAdminResultOverride(divIndex, week, matchIndex){
+  const key = adminOverrideKey(divIndex, week, matchIndex);
+  return !!(state.overrides && state.overrides.results && state.overrides.results[key]);
+}
 function applyAdminOverridesDoc(doc){
   if(!doc || typeof doc !== "object") return false;
   state.overrides = {
@@ -1885,8 +1889,12 @@ function applyAdminOverridesDoc(doc){
     penalties: Array.isArray(doc.penalties) ? doc.penalties : [],
     updatedAt: doc.updatedAt || null
   };
+  return sealAdminOverridesOntoResults();
+}
+// Admin corrections always win over baked CSV/HTML and live scorer/Supabase cards.
+function sealAdminOverridesOntoResults(){
   let changed = false;
-  Object.keys(state.overrides.results).forEach(key=>{
+  Object.keys((state.overrides && state.overrides.results) || {}).forEach(key=>{
     const m = key.match(/^([0-2])-w(\d+)m(\d+)$/);
     if(!m) return;
     const div = Number(m[1]);
@@ -1916,7 +1924,11 @@ function applyAdminOverridesDoc(doc){
 async function loadAdminOverrides(){
   try{
     const res = await fetch("/api/admin", { cache: "no-store" });
-    if(!res.ok) return;
+    if(!res.ok){
+      // Keep any already-loaded overrides sealed over cards/HTML.
+      if(sealAdminOverridesOntoResults()) render();
+      return;
+    }
     const data = await res.json();
     state.adminAuthConfigured = !!data.authConfigured;
     state.adminSource = data.source || null;
@@ -1932,7 +1944,9 @@ async function loadAdminOverrides(){
       }
     }
     if(changed || state.tab === "admin") render();
-  }catch(e){}
+  }catch(e){
+    if(sealAdminOverridesOntoResults()) render();
+  }
 }
 async function adminLogin(){
   const username = (document.getElementById("admin-username") || {}).value || "";
@@ -2179,12 +2193,15 @@ function applySyncedCard(card){
   const { divIndex: div, week, matchIndex, homeNum, awayNum } = leagueCardCoords(card);
   if(div == null || div < 0 || div > 2 || !state.results[div]) return false;
   if(week == null || matchIndex == null || homeNum == null || awayNum == null) return false;
+  // Admin score corrections supersede scorer / Supabase cards (and baked HTML).
+  if(hasAdminResultOverride(div, week, matchIndex)) return false;
   if(isBellHotelFixture(div, homeNum, awayNum)) return false;
   const scheduled = SCHEDULE.find(r => r.type === "league" && r.week === week);
   const pairing = scheduled && scheduled.matches[matchIndex];
   if(pairing && isBellHotelFixture(div, pairing[0], pairing[1])) return false;
   const key = "w" + week + "m" + matchIndex;
   const prev = state.results[div][key];
+  if(prev && prev.source === "admin") return false;
   const homeTeam = teamNameAt(div, homeNum);
   const awayTeam = teamNameAt(div, awayNum);
   // Synced cards only carry name and pins. A 27 is one rub, stored on the
@@ -2204,7 +2221,8 @@ function applySyncedCard(card){
     awayPlayers: (card.awayPlayers || []).map(p => syncedPlayer(p, prev && prev.awayPlayers, awayTeam)),
     homeTotal: card.homeTotal,
     awayTotal: card.awayTotal,
-    savedAt: card.updatedAt || card.savedAt || card.receivedAt
+    savedAt: card.updatedAt || card.savedAt || card.receivedAt,
+    source: "card"
   };
   if(JSON.stringify(prev) === JSON.stringify(next)) return false;
   state.results[div][key] = next;
@@ -2213,13 +2231,24 @@ function applySyncedCard(card){
 async function loadSyncedCards(){
   try{
     const res = await fetch("/api/cards", { cache: "no-store" });
-    if(!res.ok) return;
+    if(!res.ok) return false;
     const data = await res.json();
     // Prefer Supabase when available; empty/unavailable leaves baked HTML/CSV results.
+    // Quick / try-out cards never apply. Admin overrides are re-sealed after this.
     let changed = false;
     (data.cards || []).forEach(card => { if(applySyncedCard(card)) changed = true; });
-    if(changed) render();
-  }catch(e){}
+    if(sealAdminOverridesOntoResults()) changed = true;
+    return changed;
+  }catch(e){
+    return false;
+  }
+}
+
+async function refreshLiveResults(){
+  const cardsChanged = await loadSyncedCards();
+  // Always fetch admin last so corrections/penalties win after refresh / tab focus.
+  await loadAdminOverrides();
+  if(cardsChanged) render();
 }
 
 /* ---------- boot ---------- */
@@ -2227,11 +2256,9 @@ async function loadSyncedCards(){
   loadInitialState();
   restoreAdminSession();
   render();
-  Promise.resolve(loadSyncedCards()).then(() => loadAdminOverrides());
+  refreshLiveResults();
   document.addEventListener("visibilitychange", () => {
-    if(!document.hidden){
-      loadSyncedCards().then(() => loadAdminOverrides());
-    }
+    if(!document.hidden) refreshLiveResults();
   });
   // scroll current week into view on first load
   setTimeout(()=>{

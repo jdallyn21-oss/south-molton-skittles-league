@@ -29,7 +29,13 @@ The **Admin** tab is for officers who need to correct a score or record a points
 | `BLOB_READ_WRITE_TOKEN` | Optional Vercel Blob store for durable overrides on serverless |
 | `LEAGUE_ADMIN_SAVE_KEY` | Optional key for the Supabase admin save RPC |
 
-Admin sits in a slim bar above the hero header (not in the main tabs). A built-in officer account is available on every host (`smskittlesadmin`). Extra accounts can be added with `LEAGUE_ADMIN_USER` / `LEAGUE_ADMIN_PASSWORD` (or `LEAGUE_ADMIN_USERS`). Locally, if no env users are set, `admin` / `skittles-local` also works. After sign-in, use **Edit** on Fixtures & Results to save a correction, or record a penalty under Admin → Penalties. Admin corrections win over live cards and baked HTML. Public visitors still load the corrected scores via `GET /api/admin` (no login required to read).
+Admin sits in a slim bar above the hero header (not in the main tabs). A built-in officer account is available on every host (`smskittlesadmin`). Extra accounts can be added with `LEAGUE_ADMIN_USER` / `LEAGUE_ADMIN_PASSWORD` (or `LEAGUE_ADMIN_USERS`). Locally, if no env users are set, `admin` / `skittles-local` also works. After sign-in, use **Edit** on Fixtures & Results to save a correction, or record a penalty under Admin → Penalties. Public visitors still load the corrected scores via `GET /api/admin` (no login required to read).
+
+**Result precedence** (fixtures, tables, averages — same after refresh / tab focus):
+
+1. Admin score corrections and point penalties (`GET /api/admin`)
+2. Live scored league cards from the scoring app / Supabase (`GET /api/cards`) — quick / try-out cards never apply
+3. Baked CSV/HTML results in the page
 
 For durable saves on production without Blob, run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` in the Supabase SQL editor.
 

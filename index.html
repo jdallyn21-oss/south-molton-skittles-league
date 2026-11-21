@@ -584,6 +584,7 @@ const state = {
   playersDiv: "all",
   playerSearch: "",
   playerSort: { key:"avg", dir:"desc" },
+  teamPlayerSort: { key:"total", dir:"desc" },
   readOnly: true,
   loaded: false,
   adminAuthed: false,
@@ -1224,20 +1225,13 @@ function buildTeamProfile(divIdx, teamNum){
       heading.className="division-heading";
       heading.textContent="Players";
       wrap.appendChild(heading);
-      const ptbl=document.createElement("table");
-      ptbl.className="league-table";
-      ptbl.innerHTML = `<thead><tr><th>Player</th><th>P</th><th>Total</th><th>Avg</th><th>% of team pins</th></tr></thead>
-        <tbody>${players.map(p=>`<tr class="playerrow" onclick="viewPlayer(${divIdx},'${encodeURIComponent(p.name)}','${encodeURIComponent(p.team)}')">
-            <td class="name">${p.name}</td>
-            <td class="num">${p.games}</td>
-            <td class="num">${p.total}</td>
-            <td class="num pts">${p.avg.toFixed(1)}</td>
-            <td class="num">${p.pct.toFixed(1)}%</td>
-          </tr>`).join("")}</tbody>`;
-      wrap.appendChild(ptbl);
+      const slot=document.createElement("div");
+      slot.id="team-players-slot";
+      slot.innerHTML = renderTeamPlayersTableHTML(divIdx, teamName);
+      wrap.appendChild(slot);
       const note=document.createElement("p");
       note.className="note";
-      note.textContent="Share of the team's total pins scored this season, by player.";
+      note.textContent="Share of the team's total pins scored this season, by player. Click a column heading to sort.";
       wrap.appendChild(note);
     }
   }
@@ -1254,8 +1248,58 @@ function buildTeamPlayerStats(divIdx, teamName){
   const index = buildPlayerIndex(divIdx);
   const players = Object.values(index).map(playerStats).filter(p=>p.team===teamName);
   const grandTotal = players.reduce((s,p)=>s+p.total,0);
-  players.sort((a,b)=> b.total-a.total || a.name.localeCompare(b.name));
-  return players.map(p=>({ ...p, pct: grandTotal ? (p.total/grandTotal*100) : 0 }));
+  const withPct = players.map(p=>({ ...p, pct: grandTotal ? (p.total/grandTotal*100) : 0 }));
+  return sortTeamPlayerRows(withPct);
+}
+
+function sortTeamPlayerRows(rows){
+  const {key, dir} = state.teamPlayerSort;
+  const mult = dir==="asc" ? 1 : -1;
+  return rows.slice().sort((a,b)=>{
+    const av=a[key], bv=b[key];
+    let c;
+    if(typeof av === "string") c = av.localeCompare(bv);
+    else c = av - bv;
+    return c!==0 ? mult*c : a.name.localeCompare(b.name);
+  });
+}
+
+function teamPlayerSortArrow(key){
+  if(state.teamPlayerSort.key!==key) return "";
+  return state.teamPlayerSort.dir==="desc" ? " ▾" : " ▴";
+}
+
+function setTeamPlayerSort(key){
+  if(state.teamPlayerSort.key===key){
+    state.teamPlayerSort.dir = state.teamPlayerSort.dir==="desc" ? "asc" : "desc";
+  } else {
+    state.teamPlayerSort = { key, dir: key==="name" ? "asc" : "desc" };
+  }
+  const slot=document.getElementById("team-players-slot");
+  if(slot && state.selectedTeam){
+    slot.innerHTML = renderTeamPlayersTableHTML(state.selectedTeam.div, teamNameAt(state.selectedTeam.div, state.selectedTeam.num));
+  }
+}
+
+function renderTeamPlayersTableHTML(divIdx, teamName){
+  const players = buildTeamPlayerStats(divIdx, teamName);
+  if(!players.length) return "";
+  return `<table class="league-table">
+      <thead><tr>
+        <th class="sortable" onclick="setTeamPlayerSort('name')">Player${teamPlayerSortArrow('name')}</th>
+        <th class="sortable" onclick="setTeamPlayerSort('games')">P${teamPlayerSortArrow('games')}</th>
+        <th class="sortable" onclick="setTeamPlayerSort('total')">Total${teamPlayerSortArrow('total')}</th>
+        <th class="sortable" onclick="setTeamPlayerSort('avg')">Avg${teamPlayerSortArrow('avg')}</th>
+        <th class="sortable" onclick="setTeamPlayerSort('pct')">% of team pins${teamPlayerSortArrow('pct')}</th>
+      </tr></thead>
+      <tbody>${players.map(p=>`<tr class="playerrow" onclick="viewPlayer(${divIdx},'${encodeURIComponent(p.name)}','${encodeURIComponent(p.team)}')">
+          <td class="name">${p.name}</td>
+          <td class="num">${p.games}</td>
+          <td class="num">${p.total}</td>
+          <td class="num pts">${p.avg.toFixed(1)}</td>
+          <td class="num">${p.pct.toFixed(1)}%</td>
+        </tr>`).join("")}</tbody>
+    </table>`;
 }
 
 function withdrawnNote(divIdx){

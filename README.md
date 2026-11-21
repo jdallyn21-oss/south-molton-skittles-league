@@ -29,7 +29,7 @@ The **Admin** tab is for officers who need to correct a score or record a points
 | `BLOB_READ_WRITE_TOKEN` | Optional Vercel Blob store for durable overrides on serverless |
 | `LEAGUE_ADMIN_SAVE_KEY` | Optional key for the Supabase admin save RPC |
 
-Locally, if no admin env is set, you can sign in as `admin` / `skittles-local`. That fallback is disabled on Vercel. After sign-in, use **Edit** on Fixtures & Results to save a correction, or record a penalty under Admin → Penalties. Admin corrections win over live cards and baked HTML. Public visitors still load the corrected scores via `GET /api/admin` (no login required to read).
+Admin sits in a slim bar above the hero header (not in the main tabs). Locally, if no admin env is set, you can sign in as `admin` / `skittles-local`. That fallback is disabled on Vercel — set `LEAGUE_ADMIN_USER` and `LEAGUE_ADMIN_PASSWORD` on the project, then redeploy. After sign-in, use **Edit** on Fixtures & Results to save a correction, or record a penalty under Admin → Penalties. Admin corrections win over live cards and baked HTML. Public visitors still load the corrected scores via `GET /api/admin` (no login required to read).
 
 For durable saves on production without Blob, run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` in the Supabase SQL editor.
 

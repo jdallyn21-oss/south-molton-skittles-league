@@ -6,8 +6,9 @@ const os = require('os');
 const path = require('path');
 
 delete process.env.VERCEL;
-process.env.LEAGUE_ADMIN_USER = 'joe';
-process.env.LEAGUE_ADMIN_PASSWORD = 'secret-pass';
+delete process.env.LEAGUE_ADMIN_USER;
+delete process.env.LEAGUE_ADMIN_PASSWORD;
+delete process.env.LEAGUE_ADMIN_USERS;
 process.env.LEAGUE_ADMIN_SESSION_SECRET = 'unit-test-session';
 process.env.LEAGUE_ADMIN_DATA = path.join(os.tmpdir(), 'league-admin-' + Date.now() + '.json');
 
@@ -27,11 +28,15 @@ const {
 
 (async () => {
   assert.strictEqual(authConfigured(), true);
-  assert.ok(findUser('joe', 'secret-pass'));
-  assert.strictEqual(findUser('joe', 'nope'), null);
+  assert.ok(findUser('smskittlesadmin', 'Southmolton2026!'));
+  assert.strictEqual(findUser('smskittlesadmin', 'nope'), null);
 
-  const token = createSessionToken('joe');
-  assert.strictEqual(verifySessionToken(token).username, 'joe');
+  process.env.LEAGUE_ADMIN_USER = 'joe';
+  process.env.LEAGUE_ADMIN_PASSWORD = 'secret-pass';
+  assert.ok(findUser('joe', 'secret-pass'));
+
+  const token = createSessionToken('smskittlesadmin');
+  assert.strictEqual(verifySessionToken(token).username, 'smskittlesadmin');
   assert.strictEqual(verifySessionToken('bad.token'), null);
 
   let doc = EMPTY();

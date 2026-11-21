@@ -60,6 +60,8 @@ module.exports = async function handler(req, res) {
       ok: true,
       source: loaded.source,
       authConfigured: authConfigured(),
+      persistReady: loaded.persistReady !== false,
+      persistHint: loaded.persistHint || null,
       overrides: loaded.doc
     });
     return;

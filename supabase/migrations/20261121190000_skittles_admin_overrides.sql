@@ -1,10 +1,11 @@
--- Optional durable store for league admin score corrections and point penalties.
--- Run in the Supabase SQL editor for project dtctorijynmcdjtzmgnk if you want
--- admin edits to persist on Vercel without Blob storage.
+-- Durable store for league admin score corrections and point penalties.
+-- Project: https://dtctorijynmcdjtzmgnk.supabase.co
 --
--- Set a save key once (same value as Vercel LEAGUE_ADMIN_SAVE_KEY, or leave
--- unset and rely on the league site API which already requires a login session):
---   select set_config('app.league_admin_save_key', 'your-long-secret', false);
+-- ONE STEP: open the SQL editor for that project and run this whole file once:
+--   https://supabase.com/dashboard/project/dtctorijynmcdjtzmgnk/sql/new
+--
+-- No save-key setup required. The league site /api/admin route already requires
+-- a signed-in admin session before it calls skittles_admin_save_overrides.
 
 create table if not exists public.skittles_admin_state (
   id int primary key default 1 check (id = 1),
@@ -44,6 +45,7 @@ as $$
 declare
   expected text := nullif(current_setting('app.league_admin_save_key', true), '');
 begin
+  -- Optional DB-side key. Leave unset; the site API already gates writes by login.
   if expected is not null and p_key is distinct from expected then
     return jsonb_build_object('error', 'Wrong admin save key.');
   end if;

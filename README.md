@@ -37,7 +37,7 @@ Admin sits in a slim bar above the hero header (not in the main tabs). A built-i
 2. Live scored league cards from the scoring app / Supabase (`GET /api/cards`) — quick / try-out cards never apply
 3. Baked CSV/HTML results in the page
 
-For durable saves on production without Blob, run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` in the Supabase SQL editor.
+**One step for durable admin saves on Vercel:** in the Supabase SQL editor for project [`dtctorijynmcdjtzmgnk`](https://supabase.com/dashboard/project/dtctorijynmcdjtzmgnk/sql/new), paste and run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` once. The site already has `SUPABASE_URL` / `SUPABASE_ANON_KEY` for that project (same as live cards).
 
 ## League fixture API
 

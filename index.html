@@ -592,6 +592,8 @@ const state = {
   adminToken: "",
   adminAuthConfigured: false,
   adminSource: null,
+  adminPersistReady: true,
+  adminPersistHint: "",
   overrides: { results: {}, penalties: [], updatedAt: null },
   adminPanel: "scores" // scores | penalties
 };
@@ -1932,6 +1934,8 @@ async function loadAdminOverrides(){
     const data = await res.json();
     state.adminAuthConfigured = !!data.authConfigured;
     state.adminSource = data.source || null;
+    state.adminPersistReady = data.persistReady !== false;
+    state.adminPersistHint = data.persistHint || "";
     const changed = applyAdminOverridesDoc(data.overrides || {});
     if(state.adminToken){
       const who = await adminApi("whoami", {});
@@ -2044,7 +2048,8 @@ function buildAdminView(){
   const header = document.createElement("div");
   header.className = "settings-block";
   header.innerHTML = `<h3>League admin <span class="admin-badge">Signed in</span></h3>
-    <p class="note" style="margin-top:0;">Signed in as <strong>${state.adminUsername}</strong>${state.adminSource ? ` · saving via ${state.adminSource}` : ""}${state.overrides.updatedAt ? ` · last change ${state.overrides.updatedAt}` : ""}.</p>
+    <p class="note" style="margin-top:0;">Signed in as <strong>${state.adminUsername}</strong>${state.adminSource ? ` · reading via ${state.adminSource}` : ""}${state.overrides.updatedAt ? ` · last change ${state.overrides.updatedAt}` : ""}.</p>
+    ${state.adminPersistReady ? "" : `<p class="note" style="color:#8a2f1d;">${state.adminPersistHint || "Admin saves are not durable on this host yet."}</p>`}
     <div class="divswitch" style="margin-bottom:0;">
       <button class="${state.adminPanel==="scores"?"active":""}" onclick="setAdminPanel('scores')">Score corrections</button>
       <button class="${state.adminPanel==="penalties"?"active":""}" onclick="setAdminPanel('penalties')">Penalties</button>

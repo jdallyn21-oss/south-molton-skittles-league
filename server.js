@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { acceptCard, createStore, pruneBellHotelCards } = require('./lib/league-cards');
 const { fetchLeagueCards } = require('./lib/supabase-league');
+const adminHandler = require('./api/admin');
 
 const PORT = Number(process.env.PORT) || 47331;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -59,6 +60,13 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS' && url.pathname.startsWith('/api/')) {
     res.writeHead(204, CORS);
     res.end();
+    return;
+  }
+
+  if (url.pathname === '/api/admin') {
+    Promise.resolve(adminHandler(req, res)).catch(() => {
+      send(res, 500, { ok: false, error: 'Admin request failed.' });
+    });
     return;
   }
 

@@ -16,6 +16,23 @@ The site and the API listen on port 47331. Open [http://127.0.0.1:47331](http://
 
 Locally, with those variables unset, cards stay in `data/league-cards.json` (not committed). Set `LEAGUE_DATA` to a durable file path if the host’s disk is wiped on restart. No API token is required for the local file.
 
+## League admin
+
+The **Admin** tab is for officers who need to correct a score or record a points penalty. Sign in with a username and password (not a shared PIN).
+
+| Env var | Purpose |
+| --- | --- |
+| `LEAGUE_ADMIN_USER` / `LEAGUE_ADMIN_PASSWORD` | Single admin login |
+| `LEAGUE_ADMIN_USERS` | Optional JSON array of `{ "username", "password" }` for more than one officer |
+| `LEAGUE_ADMIN_SESSION_SECRET` | Optional; used to sign browser session tokens |
+| `LEAGUE_ADMIN_DATA` | Optional file path for saved overrides (defaults under `data/`) |
+| `BLOB_READ_WRITE_TOKEN` | Optional Vercel Blob store for durable overrides on serverless |
+| `LEAGUE_ADMIN_SAVE_KEY` | Optional key for the Supabase admin save RPC |
+
+Locally, if no admin env is set, you can sign in as `admin` / `skittles-local`. That fallback is disabled on Vercel. After sign-in, use **Edit** on Fixtures & Results to save a correction, or record a penalty under Admin → Penalties. Admin corrections win over live cards and baked HTML. Public visitors still load the corrected scores via `GET /api/admin` (no login required to read).
+
+For durable saves on production without Blob, run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` in the Supabase SQL editor.
+
 ## League fixture API
 
 The scoring app POSTs at the end of each pair of rubs. Only a scheduled league fixture is stored. A later push for the same fixture updates the running scores. A finished match card is not required: unplayed boxes stay `null`.

@@ -18,6 +18,8 @@ const {
   createSessionToken,
   verifySessionToken,
   upsertResult,
+  clearResult,
+  forgetResult,
   addPenalty,
   removePenalty,
   saveOverrides,
@@ -52,6 +54,12 @@ const {
   assert.ok(!up.error);
   doc = up.doc;
   assert.strictEqual(doc.results[resultKey(2, 7, 3)].homeTotal, 465);
+
+  const cleared = clearResult(doc, 2, 8, 1);
+  doc = cleared.doc;
+  assert.strictEqual(doc.results[resultKey(2, 8, 1)].cleared, true);
+  doc = forgetResult(doc, 2, 8, 1).doc;
+  assert.strictEqual(doc.results[resultKey(2, 8, 1)], undefined);
 
   const pen = addPenalty(doc, { divIndex: 2, teamNum: 2, pointsDelta: -1, reason: 'Late card', week: 7 });
   assert.ok(!pen.error);

@@ -999,18 +999,31 @@ async function clearResult(week,matchIndex){
       matchIndex
     });
     if(!saved || !saved.ok){
-      showToast((saved && saved.error) || "Couldn't clear admin correction");
+      showToast((saved && saved.error) || "Couldn't clear score");
       render();
       return;
     }
     applyAdminOverridesDoc(saved.overrides);
-    showToast("Admin correction cleared");
+    // Cards must not repaint this fixture after Clear — seal removes it again.
+    sealAdminOverridesOntoResults();
+    showToast("Score cleared (hidden from cards too)");
     render();
     return;
   }
   render();
   const ok = await persistState();
   if(ok) showToast("Result cleared");
+}
+async function adminForgetResult(divIndex, week, matchIndex){
+  const saved = await adminApi("forget-result", { divIndex, week, matchIndex });
+  if(!saved || !saved.ok){
+    showToast((saved && saved.error) || "Couldn't restore fixture");
+    return;
+  }
+  applyAdminOverridesDoc(saved.overrides);
+  await refreshLiveResults();
+  showToast("Suppression removed — live card may show again");
+  render();
 }
 
 /* ---------- league table ---------- */
@@ -1893,7 +1906,7 @@ function applyAdminOverridesDoc(doc){
   };
   return sealAdminOverridesOntoResults();
 }
-// Admin corrections always win over baked CSV/HTML and live scorer/Supabase cards.
+// Admin corrections / Clear tombstones always win over baked CSV/HTML and live cards.
 function sealAdminOverridesOntoResults(){
   let changed = false;
   Object.keys((state.overrides && state.overrides.results) || {}).forEach(key=>{
@@ -1905,6 +1918,13 @@ function sealAdminOverridesOntoResults(){
     const res = state.overrides.results[key];
     if(!state.results[div]) return;
     const fixtureKey = "w" + week + "m" + matchIndex;
+    if(res && res.cleared === true){
+      if(state.results[div][fixtureKey]){
+        delete state.results[div][fixtureKey];
+        changed = true;
+      }
+      return;
+    }
     const next = {
       homeNum: res.homeNum,
       awayNum: res.awayNum,
@@ -2134,21 +2154,35 @@ function buildAdminView(){
     if(!m) return null;
     const div = Number(m[1]), week = Number(m[2]), mi = Number(m[3]);
     const res = state.overrides.results[key];
-    const home = teamNameAt(div, res.homeNum);
-    const away = teamNameAt(div, res.awayNum);
+    const row = SCHEDULE.find(r => r.type === "league" && r.week === week);
+    const pairing = row && row.matches[mi];
+    const homeNum = res.cleared ? (pairing && pairing[0]) : res.homeNum;
+    const awayNum = res.cleared ? (pairing && pairing[1]) : res.awayNum;
+    const home = teamNameAt(div, homeNum) || ("Team " + (homeNum || "?"));
+    const away = teamNameAt(div, awayNum) || ("Team " + (awayNum || "?"));
     return { key, div, week, mi, res, home, away };
   }).filter(Boolean).sort((a,b)=> a.div-b.div || a.week-b.week || a.mi-b.mi);
 
   scores.innerHTML = `<h3>Score corrections</h3>
-    <p class="note" style="margin-top:0;">Go to <strong>Fixtures &amp; Results</strong>, choose the division, then use <em>Edit</em> on a fixture. Saving while signed in stores an admin correction that wins over live cards and the baked sheet.</p>`
+    <p class="note" style="margin-top:0;">Go to <strong>Fixtures &amp; Results</strong>, choose the division, then use <em>Edit</em> or <em>Clear</em>. Clear hides a score (including live cards) until you save a new one or restore the card.</p>`
     + (corrections.length
       ? `<table class="league-table"><thead><tr><th>Fixture</th><th>Score</th><th>Note</th><th></th></tr></thead><tbody>${
-          corrections.map(c=>`<tr>
-            <td class="name">${DIVISION_LABELS[c.div]} · week ${c.week}<br>${c.home} v ${c.away}</td>
-            <td class="num">${c.res.homeTotal} – ${c.res.awayTotal}</td>
-            <td>${c.res.adminNote || "—"}</td>
-            <td><button class="linklike muted" onclick="openAdminFixture(${c.div},${c.week},${c.mi})">Open</button></td>
-          </tr>`).join("")
+          corrections.map(c=>{
+            if(c.res.cleared){
+              return `<tr>
+                <td class="name">${DIVISION_LABELS[c.div]} · week ${c.week}<br>${c.home} v ${c.away}</td>
+                <td class="num">Cleared</td>
+                <td>Hidden from cards</td>
+                <td><button class="linklike muted" onclick="adminForgetResult(${c.div},${c.week},${c.mi})">Restore card</button></td>
+              </tr>`;
+            }
+            return `<tr>
+              <td class="name">${DIVISION_LABELS[c.div]} · week ${c.week}<br>${c.home} v ${c.away}</td>
+              <td class="num">${c.res.homeTotal} – ${c.res.awayTotal}</td>
+              <td>${c.res.adminNote || "—"}</td>
+              <td><button class="linklike muted" onclick="openAdminFixture(${c.div},${c.week},${c.mi})">Open</button></td>
+            </tr>`;
+          }).join("")
         }</tbody></table>`
       : `<p class="note">No admin score corrections yet.</p>`);
   wrap.appendChild(scores);

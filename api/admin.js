@@ -9,6 +9,7 @@ const {
   saveOverrides,
   upsertResult,
   clearResult,
+  forgetResult,
   addPenalty,
   removePenalty
 } = require('../lib/admin-overrides');
@@ -123,6 +124,8 @@ module.exports = async function handler(req, res) {
     next = changed.doc;
   } else if (action === 'clear-result') {
     next = clearResult(next, body.divIndex, body.week, body.matchIndex).doc;
+  } else if (action === 'forget-result') {
+    next = forgetResult(next, body.divIndex, body.week, body.matchIndex).doc;
   } else if (action === 'add-penalty') {
     const changed = addPenalty(next, body.penalty);
     if (changed.error) return send(res, 400, { ok: false, error: changed.error });

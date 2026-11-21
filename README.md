@@ -33,9 +33,11 @@ Admin sits in a slim bar above the hero header (not in the main tabs). A built-i
 
 **Result precedence** (fixtures, tables, averages — same after refresh / tab focus):
 
-1. Admin score corrections and point penalties (`GET /api/admin`)
+1. Admin score corrections, **Clear** suppressions, and point penalties (`GET /api/admin`)
 2. Live scored league cards from the scoring app / Supabase (`GET /api/cards`) — quick / try-out cards never apply
 3. Baked CSV/HTML results in the page
+
+Admin **Clear** stores a durable suppression so a live card cannot repaint that fixture after refresh. Use **Restore card** on the Admin corrections list to lift a Clear.
 
 **One step for durable admin saves on Vercel:** in the Supabase SQL editor for project [`dtctorijynmcdjtzmgnk`](https://supabase.com/dashboard/project/dtctorijynmcdjtzmgnk/sql/new), paste and run `supabase/migrations/20261121190000_skittles_admin_overrides.sql` once. The site already has `SUPABASE_URL` / `SUPABASE_ANON_KEY` for that project (same as live cards).
 
